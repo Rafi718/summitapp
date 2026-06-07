@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../providers/product_provider.dart';
-import '../../widgets/product_card.dart';
+import '../home/alpine_theme.dart';
+import '../home/widgets/shared_widgets.dart';
+import '../home/widgets/alpine_product_card.dart';
 
 class ProductListPage extends StatefulWidget {
   const ProductListPage({super.key});
@@ -13,13 +15,12 @@ class ProductListPage extends StatefulWidget {
 class _ProductListPageState extends State<ProductListPage> {
   String _sortBy = 'terbaru';
 
-  final List<String> _sortOptions = ['terbaru', 'termurah', 'termahal', 'terlaris', 'rating'];
   final Map<String, String> _sortLabels = {
     'terbaru': 'Terbaru',
     'termurah': 'Termurah',
     'termahal': 'Termahal',
     'terlaris': 'Terlaris',
-    'rating': 'Rating Tertinggi',
+    'rating': 'Rating',
   };
 
   @override
@@ -36,77 +37,62 @@ class _ProductListPageState extends State<ProductListPage> {
     }
 
     return Scaffold(
-      appBar: AppBar(
-        title: Text(categoryName),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.search),
-            onPressed: () => Navigator.pushNamed(context, '/search'),
-          ),
-        ],
-      ),
-      body: Column(
-        children: [
-          _buildSortRow(),
-          Expanded(
-            child: productProvider.products.isEmpty
-                ? Center(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Icon(Icons.inventory_2_outlined, size: 64, color: Colors.grey[400]),
-                        const SizedBox(height: 16),
-                        Text('Belum ada produk', style: TextStyle(color: Colors.grey[600], fontSize: 16)),
-                      ],
+      backgroundColor: AppColors.background,
+      body: SafeArea(
+        bottom: false,
+        child: Column(
+          children: [
+            PageHeader(title: categoryName, showBackButton: true),
+            _buildSortRow(),
+            Expanded(
+              child: productProvider.products.isEmpty
+                  ? EmptyState(icon: Icons.inventory_2_outlined, title: 'Belum ada produk')
+                  : GridView.builder(
+                      padding: const EdgeInsets.fromLTRB(20, 12, 20, 100),
+                      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                        crossAxisCount: 2,
+                        crossAxisSpacing: 12,
+                        mainAxisSpacing: 16,
+                        childAspectRatio: 0.62,
+                      ),
+                      itemCount: productProvider.products.length,
+                      itemBuilder: (context, index) => ProductCard(product: productProvider.products[index], style: ProductCardStyle.grid),
                     ),
-                  )
-                : GridView.builder(
-                    padding: const EdgeInsets.all(16),
-                    gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                      crossAxisCount: 2,
-                      crossAxisSpacing: 12,
-                      mainAxisSpacing: 12,
-                      childAspectRatio: 0.65,
-                    ),
-                    itemCount: productProvider.products.length,
-                    itemBuilder: (context, index) {
-                      return ProductCard(product: productProvider.products[index]);
-                    },
-                  ),
-          ),
-        ],
+            ),
+          ],
+        ),
       ),
     );
   }
 
   Widget _buildSortRow() {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        boxShadow: [
-          BoxShadow(color: Colors.black.withValues(alpha: 0.03), blurRadius: 4, offset: const Offset(0, 2)),
-        ],
-      ),
+      margin: const EdgeInsets.fromLTRB(20, 0, 20, 0),
       child: Row(
         children: [
-          const Icon(Icons.sort, size: 20),
-          const SizedBox(width: 8),
+          const Icon(Icons.sort, size: 16, color: AppColors.textMuted),
+          const SizedBox(width: 6),
           Expanded(
             child: SingleChildScrollView(
               scrollDirection: Axis.horizontal,
               child: Row(
-                children: _sortOptions.map((sort) {
-                  final isSelected = _sortBy == sort;
+                children: _sortLabels.entries.map((entry) {
+                  final isSelected = _sortBy == entry.key;
                   return Padding(
                     padding: const EdgeInsets.only(right: 8),
-                    child: ChoiceChip(
-                      label: Text(_sortLabels[sort]!),
-                      selected: isSelected,
-                      onSelected: (selected) {
-                        setState(() => _sortBy = sort);
-                        context.read<ProductProvider>().setSortBy(sort);
+                    child: GestureDetector(
+                      onTap: () {
+                        setState(() => _sortBy = entry.key);
+                        context.read<ProductProvider>().setSortBy(entry.key);
                       },
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                        decoration: BoxDecoration(
+                          color: isSelected ? AppColors.textPrimary : AppColors.surfaceAlt,
+                          borderRadius: BorderRadius.circular(20),
+                        ),
+                        child: Text(entry.value, style: AppText.caption(size: 12, color: isSelected ? Colors.white : AppColors.textPrimary, weight: FontWeight.w500)),
+                      ),
                     ),
                   );
                 }).toList(),

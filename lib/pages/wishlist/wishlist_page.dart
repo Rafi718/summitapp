@@ -1,44 +1,27 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../providers/auth_provider.dart';
+import '../home/alpine_theme.dart';
+import '../home/widgets/shared_widgets.dart';
 
-class WishlistPage extends StatefulWidget {
+class WishlistPage extends StatelessWidget {
   const WishlistPage({super.key});
 
   @override
-  State<WishlistPage> createState() => _WishlistPageState();
-}
-
-class _WishlistPageState extends State<WishlistPage> {
-  @override
   Widget build(BuildContext context) {
     final auth = context.watch<AuthProvider>();
-
-    if (!auth.isLoggedIn) {
-      return Scaffold(
-        appBar: AppBar(title: const Text('Wishlist')),
-        body: Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(Icons.favorite_border, size: 64, color: Colors.grey[400]),
-              const SizedBox(height: 16),
-              Text('Silakan login untuk melihat wishlist', style: TextStyle(color: Colors.grey[600])),
-            ],
-          ),
-        ),
-      );
-    }
-
     return Scaffold(
-      appBar: AppBar(title: const Text('Wishlist')),
-      body: Center(
+      backgroundColor: AppColors.background,
+      body: SafeArea(
+        bottom: false,
         child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(Icons.favorite_border, size: 64, color: Colors.grey[300]),
-            const SizedBox(height: 16),
-            Text('Fitur wishlist akan segera hadir', style: TextStyle(color: Colors.grey[500])),
+            const PageHeader(title: 'Wishlist', showBackButton: true),
+            Expanded(
+              child: !auth.isLoggedIn
+                  ? EmptyState(icon: Icons.favorite_border, title: 'Belum login', description: 'Login untuk melihat wishlist', actionLabel: 'Login', onAction: () => Navigator.pushNamed(context, '/login'))
+                  : EmptyState(icon: Icons.favorite_border, title: 'Wishlist kosong', description: 'Simpan produk favoritmu di sini'),
+            ),
           ],
         ),
       ),

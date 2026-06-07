@@ -2,7 +2,8 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../providers/auth_provider.dart';
-import '../../config/app_theme.dart';
+import '../home/alpine_theme.dart';
+import '../home/widgets/shared_widgets.dart';
 
 class ProfilePage extends StatelessWidget {
   const ProfilePage({super.key});
@@ -13,18 +14,19 @@ class ProfilePage extends StatelessWidget {
 
     if (!auth.isLoggedIn) {
       return Scaffold(
-        appBar: AppBar(title: const Text('Profil')),
-        body: Center(
+        backgroundColor: AppColors.background,
+        body: SafeArea(
           child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(Icons.person_outline, size: 64, color: Colors.grey[400]),
-              const SizedBox(height: 16),
-              Text('Silakan login terlebih dahulu', style: TextStyle(color: Colors.grey[600])),
-              const SizedBox(height: 16),
-              ElevatedButton(
-                onPressed: () => Navigator.pushNamed(context, '/login'),
-                child: const Text('Login'),
+              const PageHeader(title: 'Profil'),
+              Expanded(
+                child: EmptyState(
+                  icon: Icons.person_outline,
+                  title: 'Belum login',
+                  description: 'Login untuk mengakses akunmu',
+                  actionLabel: 'Login',
+                  onAction: () => Navigator.pushNamed(context, '/login'),
+                ),
               ),
             ],
           ),
@@ -35,104 +37,121 @@ class ProfilePage extends StatelessWidget {
     final user = auth.currentUser!;
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Profil')),
-      body: SingleChildScrollView(
-        child: Column(
+      backgroundColor: AppColors.background,
+      body: SafeArea(
+        bottom: false,
+        child: ListView(
+          padding: const EdgeInsets.only(bottom: 100),
           children: [
-            Container(
-              width: double.infinity,
-              padding: const EdgeInsets.symmetric(vertical: 32),
-              decoration: BoxDecoration(
-                color: AppTheme.primaryGreen,
-              ),
-              child: Column(
-                children: [
-                  CircleAvatar(
-                    radius: 48,
-                    backgroundColor: Colors.white,
-                    backgroundImage: user.photo != null ? FileImage(File(user.photo!)) as ImageProvider : null,
-                    child: user.photo == null
-                        ? const Icon(Icons.person, size: 48, color: AppTheme.primaryGreen)
-                        : null,
-                  ),
-                  const SizedBox(height: 12),
-                  Text(user.name, style: const TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold)),
-                  const SizedBox(height: 4),
-                  Text(user.email, style: const TextStyle(color: Colors.white70, fontSize: 14)),
-                ],
-              ),
-            ),
-            const SizedBox(height: 16),
+            const PageHeader(title: 'Profil'),
+            const SizedBox(height: 8),
+            _buildProfileHeader(user),
+            const SizedBox(height: 20),
             _buildMenuSection(context, [
-              _buildMenuItem(context, icon: Icons.person_outlined, title: 'Edit Profil', onTap: () => Navigator.pushNamed(context, '/edit-profile')),
-              _buildMenuItem(context, icon: Icons.location_on_outlined, title: 'Alamat Saya', onTap: () => Navigator.pushNamed(context, '/address-list')),
-              _buildMenuItem(context, icon: Icons.favorite_border, title: 'Wishlist', onTap: () => Navigator.pushNamed(context, '/wishlist')),
+              _menuItem(context, icon: Icons.person_outline, title: 'Edit Profil', onTap: () => Navigator.pushNamed(context, '/edit-profile')),
+              _menuItem(context, icon: Icons.location_on_outlined, title: 'Alamat Saya', onTap: () => Navigator.pushNamed(context, '/address-list')),
+              _menuItem(context, icon: Icons.favorite_border, title: 'Wishlist', onTap: () => Navigator.pushNamed(context, '/wishlist')),
             ]),
-            const SizedBox(height: 16),
+            const SizedBox(height: 12),
             _buildMenuSection(context, [
-              _buildMenuItem(context, icon: Icons.help_outline, title: 'FAQ', onTap: () {}),
-              _buildMenuItem(context, icon: Icons.chat_bubble_outline, title: 'WhatsApp CS', onTap: () {}),
-              _buildMenuItem(context, icon: Icons.info_outline, title: 'Tentang Summit App', onTap: () {}),
+              _menuItem(context, icon: Icons.help_outline, title: 'FAQ', onTap: () {}),
+              _menuItem(context, icon: Icons.chat_bubble_outline, title: 'WhatsApp CS', onTap: () {}),
+              _menuItem(context, icon: Icons.info_outline, title: 'Tentang Summit App', onTap: () {}),
             ]),
             const SizedBox(height: 24),
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
+              padding: const EdgeInsets.symmetric(horizontal: 20),
               child: SizedBox(
                 width: double.infinity,
+                height: 48,
                 child: OutlinedButton(
-                  onPressed: () {
-                    showDialog(
-                      context: context,
-                      builder: (context) => AlertDialog(
-                        title: const Text('Logout'),
-                        content: const Text('Yakin ingin keluar?'),
-                        actions: [
-                          TextButton(
-                            onPressed: () => Navigator.pop(context),
-                            child: const Text('Batal'),
-                          ),
-                          ElevatedButton(
-                            onPressed: () {
-                              Navigator.pop(context);
-                              auth.logout();
-                              Navigator.pushNamedAndRemoveUntil(context, '/login', (route) => false);
-                            },
-                            child: const Text('Logout'),
-                          ),
-                        ],
-                      ),
-                    );
-                  },
-                  style: OutlinedButton.styleFrom(foregroundColor: Colors.red, side: const BorderSide(color: Colors.red)),
-                  child: const Text('Logout'),
+                  onPressed: () => _showLogoutDialog(context, auth),
+                  style: OutlinedButton.styleFrom(foregroundColor: AppColors.sale, side: const BorderSide(color: AppColors.sale)),
+                  child: Text('Logout', style: AppText.button(size: 14, color: AppColors.sale)),
                 ),
               ),
             ),
-            const SizedBox(height: 32),
           ],
         ),
       ),
     );
   }
 
+  Widget _buildProfileHeader(user) {
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 20),
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: AppColors.brand,
+        borderRadius: BorderRadius.circular(16),
+      ),
+      child: Row(
+        children: [
+          Container(
+            width: 56, height: 56,
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(28),
+            ),
+            clipBehavior: Clip.antiAlias,
+            child: user.photo != null
+                ? Image.file(File(user.photo!), fit: BoxFit.cover)
+                : const Icon(Icons.person, color: AppColors.brand, size: 28),
+          ),
+          const SizedBox(width: 14),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(user.name, style: AppText.body(size: 16, weight: FontWeight.w700, color: Colors.white)),
+                const SizedBox(height: 2),
+                Text(user.email, style: AppText.caption(size: 12, color: Colors.white.withValues(alpha: 0.8))),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   Widget _buildMenuSection(BuildContext context, List<Widget> items) {
     return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 16),
+      margin: const EdgeInsets.symmetric(horizontal: 20),
       decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
-        boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.04), blurRadius: 6, offset: const Offset(0, 2))],
+        color: AppColors.surfaceAlt,
+        borderRadius: BorderRadius.circular(14),
       ),
       child: Column(children: items),
     );
   }
 
-  Widget _buildMenuItem(BuildContext context, {required IconData icon, required String title, required VoidCallback onTap}) {
+  Widget _menuItem(BuildContext context, {required IconData icon, required String title, required VoidCallback onTap}) {
     return ListTile(
-      leading: Icon(icon, color: AppTheme.primaryGreen),
-      title: Text(title),
-      trailing: const Icon(Icons.chevron_right),
+      leading: Icon(icon, color: AppColors.textPrimary, size: 20),
+      title: Text(title, style: AppText.body(size: 14, weight: FontWeight.w500)),
+      trailing: const Icon(Icons.chevron_right, size: 18, color: AppColors.textMuted),
       onTap: onTap,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
     );
+  }
+
+  void _showLogoutDialog(BuildContext context, AuthProvider auth) {
+    showDialog(context: context, builder: (context) => AlertDialog(
+      backgroundColor: AppColors.background,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      title: Text('Logout', style: AppText.title(size: 16)),
+      content: Text('Yakin ingin keluar?', style: AppText.body(size: 13, color: AppColors.textSecondary)),
+      actions: [
+        TextButton(onPressed: () => Navigator.pop(context), child: Text('Batal', style: AppText.body(size: 13, color: AppColors.textSecondary))),
+        ElevatedButton(
+          onPressed: () {
+            Navigator.pop(context);
+            auth.logout();
+            Navigator.pushNamedAndRemoveUntil(context, '/login', (route) => false);
+          },
+          child: const Text('Logout'),
+        ),
+      ],
+    ));
   }
 }

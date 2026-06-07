@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../providers/auth_provider.dart';
+import '../home/alpine_theme.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -24,18 +25,11 @@ class _LoginPageState extends State<LoginPage> {
 
   Future<void> _login() async {
     if (!_formKey.currentState!.validate()) return;
-
     final auth = context.read<AuthProvider>();
-    final error = await auth.login(
-      email: _emailController.text.trim(),
-      password: _passwordController.text,
-    );
-
+    final error = await auth.login(email: _emailController.text.trim(), password: _passwordController.text);
     if (!mounted) return;
     if (error != null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(error), backgroundColor: Colors.red),
-      );
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(error), backgroundColor: AppColors.sale));
     } else {
       Navigator.pushReplacementNamed(context, '/main');
     }
@@ -44,9 +38,8 @@ class _LoginPageState extends State<LoginPage> {
   @override
   Widget build(BuildContext context) {
     final auth = context.watch<AuthProvider>();
-    final theme = Theme.of(context);
-
     return Scaffold(
+      backgroundColor: AppColors.background,
       body: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.symmetric(horizontal: 24),
@@ -55,43 +48,46 @@ class _LoginPageState extends State<LoginPage> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const SizedBox(height: 60),
+                const SizedBox(height: 48),
                 Center(
                   child: Column(
                     children: [
-                      Icon(Icons.terrain, size: 56, color: theme.colorScheme.primary),
-                      const SizedBox(height: 8),
-                      const Text('Summit App', style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold)),
+                      Container(
+                        width: 64, height: 64,
+                        decoration: BoxDecoration(color: AppColors.brand, borderRadius: BorderRadius.circular(20)),
+                        child: const Center(child: Icon(Icons.terrain, color: Colors.white, size: 32)),
+                      ),
+                      const SizedBox(height: 16),
+                      Text('Summit', style: AppText.display(size: 28, weight: FontWeight.w700)),
                       const SizedBox(height: 4),
-                      Text('Peralatan Pendakian Terpercaya', style: TextStyle(fontSize: 14, color: Colors.grey[600])),
+                      Text('Peralatan Pendakian', style: AppText.caption(size: 13, color: AppColors.textMuted)),
                     ],
                   ),
                 ),
                 const SizedBox(height: 48),
-                const Text('Login', style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
+                Text('Masuk', style: AppText.display(size: 22)),
+                const SizedBox(height: 4),
+                Text('Lanjut belanja peralatanmu', style: AppText.caption(size: 12, color: AppColors.textMuted)),
                 const SizedBox(height: 24),
                 TextFormField(
                   controller: _emailController,
                   keyboardType: TextInputType.emailAddress,
-                  decoration: const InputDecoration(
-                    labelText: 'Email',
-                    prefixIcon: Icon(Icons.email_outlined),
-                  ),
+                  decoration: const InputDecoration(labelText: 'Email', prefixIcon: Icon(Icons.email_outlined, size: 18)),
                   validator: (v) {
                     if (v == null || v.isEmpty) return 'Email tidak boleh kosong';
                     if (!v.contains('@')) return 'Format email tidak valid';
                     return null;
                   },
                 ),
-                const SizedBox(height: 16),
+                const SizedBox(height: 12),
                 TextFormField(
                   controller: _passwordController,
                   obscureText: _obscurePassword,
                   decoration: InputDecoration(
                     labelText: 'Password',
-                    prefixIcon: const Icon(Icons.lock_outlined),
+                    prefixIcon: const Icon(Icons.lock_outline, size: 18),
                     suffixIcon: IconButton(
-                      icon: Icon(_obscurePassword ? Icons.visibility_off : Icons.visibility),
+                      icon: Icon(_obscurePassword ? Icons.visibility_off_outlined : Icons.visibility_outlined, size: 18),
                       onPressed: () => setState(() => _obscurePassword = !_obscurePassword),
                     ),
                   ),
@@ -104,20 +100,22 @@ class _LoginPageState extends State<LoginPage> {
                   child: ElevatedButton(
                     onPressed: auth.isLoading ? null : _login,
                     child: auth.isLoading
-                        ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
-                        : const Text('Login', style: TextStyle(fontSize: 16)),
+                        ? const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 1.5, color: Colors.white))
+                        : Text('Masuk', style: AppText.button(size: 14)),
                   ),
                 ),
                 const SizedBox(height: 16),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Text('Belum punya akun? ', style: TextStyle(color: Colors.grey[600])),
-                    GestureDetector(
-                      onTap: () => Navigator.pushNamed(context, '/register'),
-                      child: Text('Daftar', style: TextStyle(color: theme.colorScheme.primary, fontWeight: FontWeight.bold)),
-                    ),
-                  ],
+                Center(
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text('Belum punya akun? ', style: AppText.caption(size: 12, color: AppColors.textMuted)),
+                      GestureDetector(
+                        onTap: () => Navigator.pushNamed(context, '/register'),
+                        child: Text('Daftar', style: AppText.caption(size: 12, color: AppColors.brand, weight: FontWeight.w600)),
+                      ),
+                    ],
+                  ),
                 ),
               ],
             ),

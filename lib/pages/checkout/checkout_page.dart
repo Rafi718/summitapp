@@ -6,7 +6,8 @@ import '../../providers/cart_provider.dart';
 import '../../providers/product_provider.dart';
 import '../../providers/order_provider.dart';
 import '../../models/address.dart';
-import '../../config/app_theme.dart';
+import '../home/alpine_theme.dart';
+import '../home/widgets/shared_widgets.dart';
 import '../../config/constants.dart';
 
 class CheckoutPage extends StatefulWidget {
@@ -40,91 +41,86 @@ class _CheckoutPageState extends State<CheckoutPage> {
     }
   }
 
-  Future<void> _showAddressPicker() async {
+  void _showAddressPicker() async {
     final auth = context.read<AuthProvider>();
     final addresses = await auth.service.getAddresses();
-
     if (!mounted) return;
 
     final result = await showModalBottomSheet<Address>(
       context: context,
+      backgroundColor: AppColors.background,
       shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
       builder: (context) {
         return SafeArea(
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              const Padding(
-                padding: EdgeInsets.all(16),
-                child: Text('Pilih Alamat', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+              const SizedBox(height: 8),
+              Container(width: 40, height: 4, decoration: BoxDecoration(color: AppColors.divider, borderRadius: BorderRadius.circular(2))),
+              const SizedBox(height: 16),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 20),
+                child: Row(
+                  children: [
+                    Expanded(child: Text('Pilih Alamat', style: AppText.title(size: 16))),
+                    GestureDetector(
+                      onTap: () { Navigator.pop(context); Navigator.pushNamed(context, '/address-list').then((_) => _loadAddress()); },
+                      child: Text('Kelola', style: AppText.caption(size: 12, color: AppColors.brand, weight: FontWeight.w600)),
+                    ),
+                  ],
+                ),
               ),
-              const Divider(height: 1),
+              const SizedBox(height: 8),
               if (addresses.isEmpty)
-                const Padding(
-                  padding: EdgeInsets.all(32),
-                  child: Text('Belum ada alamat. Tambahkan dulu ya.'),
-                )
+                const Padding(padding: EdgeInsets.all(32), child: Text('Belum ada alamat'))
               else
-                LimitedBox(
-                  maxHeight: 300,
+                ConstrainedBox(
+                  constraints: const BoxConstraints(maxHeight: 300),
                   child: ListView.builder(
                     shrinkWrap: true,
                     itemCount: addresses.length,
                     itemBuilder: (context, index) {
                       final addr = addresses[index];
                       return ListTile(
-                        leading: Icon(addr.isPrimary ? Icons.check_circle : Icons.circle_outlined, color: AppTheme.primaryGreen),
-                        title: Text(addr.label, style: const TextStyle(fontWeight: FontWeight.w600)),
-                        subtitle: Text('${addr.recipientName} - ${addr.recipientPhone}\n${addr.fullAddress}, ${addr.subdistrict}, ${addr.city} ${addr.postalCode}'),
+                        leading: Icon(addr.isPrimary ? Icons.check_circle : Icons.circle_outlined, color: AppColors.brand),
+                        title: Text(addr.label, style: AppText.body(size: 14, weight: FontWeight.w600)),
+                        subtitle: Text('${addr.recipientName} • ${addr.recipientPhone}\n${addr.fullAddress}, ${addr.city} ${addr.postalCode}', style: AppText.caption(size: 11, color: AppColors.textMuted)),
                         onTap: () => Navigator.pop(context, addr),
                       );
                     },
                   ),
                 ),
-              Padding(
-                padding: const EdgeInsets.all(16),
-                child: SizedBox(
-                  width: double.infinity,
-                  child: OutlinedButton.icon(
-                    onPressed: () {
-                      Navigator.pop(context);
-                      Navigator.pushNamed(context, '/address-list').then((_) => _loadAddress());
-                    },
-                    icon: const Icon(Icons.add),
-                    label: const Text('Tambah Alamat Baru'),
-                  ),
-                ),
-              ),
+              const SizedBox(height: 8),
             ],
           ),
         );
       },
     );
 
-    if (result != null) {
-      setState(() => _selectedAddress = result);
-    }
+    if (result != null) setState(() => _selectedAddress = result);
   }
 
   void _showCourierPicker() {
     showModalBottomSheet(
       context: context,
+      backgroundColor: AppColors.background,
       shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
       builder: (context) {
         return SafeArea(
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              const Padding(
-                padding: EdgeInsets.all(16),
-                child: Text('Pilih Kurir', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-              ),
-              const Divider(height: 1),
+              const SizedBox(height: 8),
+              Container(width: 40, height: 4, decoration: BoxDecoration(color: AppColors.divider, borderRadius: BorderRadius.circular(2))),
+              const SizedBox(height: 16),
+              Padding(padding: const EdgeInsets.symmetric(horizontal: 20), child: Align(alignment: Alignment.centerLeft, child: Text('Pilih Kurir', style: AppText.title(size: 16)))),
+              const SizedBox(height: 8),
               ...AppConstants.courierServices.map((service) {
                 return ListTile(
-                  title: Text(service),
-                  trailing: Text('Rp ${_formatter.format(AppConstants.ongkirFlat[service]!)}'),
+                  title: Text(service, style: AppText.body(size: 14)),
+                  trailing: Text('Rp ${_formatter.format(AppConstants.ongkirFlat[service]!)}', style: AppText.body(size: 13, weight: FontWeight.w600)),
                   selected: _selectedCourier == service,
+                  selectedTileColor: AppColors.brand.withValues(alpha: 0.05),
                   onTap: () {
                     setState(() {
                       _selectedCourier = service;
@@ -134,7 +130,7 @@ class _CheckoutPageState extends State<CheckoutPage> {
                   },
                 );
               }),
-              const SizedBox(height: 16),
+              const SizedBox(height: 8),
             ],
           ),
         );
@@ -145,33 +141,34 @@ class _CheckoutPageState extends State<CheckoutPage> {
   void _showPaymentPicker() {
     showModalBottomSheet(
       context: context,
+      backgroundColor: AppColors.background,
       shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
       builder: (context) {
         return SafeArea(
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              const Padding(
-                padding: EdgeInsets.all(16),
-                child: Text('Pilih Pembayaran', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-              ),
-              const Divider(height: 1),
+              const SizedBox(height: 8),
+              Container(width: 40, height: 4, decoration: BoxDecoration(color: AppColors.divider, borderRadius: BorderRadius.circular(2))),
+              const SizedBox(height: 16),
+              Padding(padding: const EdgeInsets.symmetric(horizontal: 20), child: Align(alignment: Alignment.centerLeft, child: Text('Pilih Pembayaran', style: AppText.title(size: 16)))),
+              const SizedBox(height: 8),
               ...AppConstants.paymentMethods.map((method) {
                 return ListTile(
                   leading: Icon(
-                    method.contains('Bank') ? Icons.account_balance : Icons.account_balance_wallet,
-                    color: AppTheme.primaryGreen,
+                    method.contains('Bank') ? Icons.account_balance_outlined : Icons.account_balance_wallet_outlined,
+                    color: AppColors.textPrimary,
+                    size: 20,
                   ),
-                  title: Text(method),
-                  selected: _selectedPayment == method,
-                  trailing: _selectedPayment == method ? const Icon(Icons.check, color: AppTheme.primaryGreen) : null,
+                  title: Text(method, style: AppText.body(size: 14)),
+                  trailing: _selectedPayment == method ? const Icon(Icons.check, color: AppColors.brand) : null,
                   onTap: () {
                     setState(() => _selectedPayment = method);
                     Navigator.pop(context);
                   },
                 );
               }),
-              const SizedBox(height: 16),
+              const SizedBox(height: 8),
             ],
           ),
         );
@@ -179,32 +176,17 @@ class _CheckoutPageState extends State<CheckoutPage> {
     );
   }
 
-  void _placeOrder() async {
-    if (_selectedAddress == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Pilih alamat pengiriman terlebih dahulu'), backgroundColor: Colors.red),
-      );
-      return;
-    }
-    if (_selectedCourier == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Pilih kurir pengiriman terlebih dahulu'), backgroundColor: Colors.red),
-      );
-      return;
-    }
-    if (_selectedPayment == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Pilih metode pembayaran terlebih dahulu'), backgroundColor: Colors.red),
-      );
-      return;
-    }
+  Future<void> _placeOrder() async {
+    if (_selectedAddress == null) return _snack('Pilih alamat dulu');
+    if (_selectedCourier == null) return _snack('Pilih kurir dulu');
+    if (_selectedPayment == null) return _snack('Pilih pembayaran dulu');
 
     final auth = context.read<AuthProvider>();
     final cart = context.read<CartProvider>();
     final products = context.read<ProductProvider>().products;
     final orderProvider = context.read<OrderProvider>();
 
-    if (!auth.isLoggedIn || auth.currentUser == null) return;
+    if (auth.currentUser == null) return;
 
     await orderProvider.createOrder(
       userId: auth.currentUser!.id!,
@@ -218,14 +200,12 @@ class _CheckoutPageState extends State<CheckoutPage> {
     );
 
     await cart.clearCart();
-
     if (!mounted) return;
     Navigator.pushNamedAndRemoveUntil(context, '/main', (route) => false);
-
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Pesanan berhasil dibuat!'), backgroundColor: AppTheme.primaryGreen),
-    );
+    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Pesanan berhasil dibuat!')));
   }
+
+  void _snack(String msg) => ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(msg), backgroundColor: AppColors.sale));
 
   @override
   Widget build(BuildContext context) {
@@ -233,210 +213,207 @@ class _CheckoutPageState extends State<CheckoutPage> {
     final products = context.read<ProductProvider>().products;
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Checkout')),
-      body: Column(
-        children: [
-          Expanded(
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+      backgroundColor: AppColors.background,
+      body: SafeArea(
+        bottom: false,
+        child: Column(
+          children: [
+            _buildHeader('Checkout'),
+            Expanded(
+              child: ListView(
+                padding: const EdgeInsets.fromLTRB(20, 8, 20, 8),
                 children: [
-                  _buildAddressSection(),
-                  const SizedBox(height: 16),
-                  _buildOrderItems(cart, products),
-                  const SizedBox(height: 16),
-                  _buildCourierSection(),
-                  const SizedBox(height: 16),
-                  _buildPaymentSection(),
-                  const SizedBox(height: 16),
-                  _buildOrderSummary(cart),
+                  _section('Alamat Pengiriman', _buildAddressSection()),
+                  const SizedBox(height: 12),
+                  _section('Pesanan', _buildOrderItems(cart, products)),
+                  const SizedBox(height: 12),
+                  _section('Kurir', _buildCourierSection()),
+                  const SizedBox(height: 12),
+                  _section('Pembayaran', _buildPaymentSection()),
+                  const SizedBox(height: 12),
+                  _section('Ringkasan', _buildOrderSummary(cart)),
                 ],
               ),
             ),
-          ),
-          _buildBottomBar(cart),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildAddressSection() {
-    return GestureDetector(
-      onTap: _showAddressPicker,
-      child: Container(
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: Colors.grey[200]!),
-        ),
-        child: Row(
-          children: [
-            const Icon(Icons.location_on, color: AppTheme.primaryGreen),
-            const SizedBox(width: 12),
-            Expanded(
-              child: _selectedAddress != null
-                  ? Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(_selectedAddress!.label, style: const TextStyle(fontWeight: FontWeight.bold)),
-                        Text('${_selectedAddress!.recipientName} - ${_selectedAddress!.recipientPhone}'),
-                        Text('${_selectedAddress!.fullAddress}, ${_selectedAddress!.subdistrict}, ${_selectedAddress!.city} ${_selectedAddress!.postalCode}',
-                            style: TextStyle(fontSize: 12, color: Colors.grey[600])),
-                      ],
-                    )
-                  : const Text('Pilih alamat pengiriman'),
-            ),
-            const Icon(Icons.chevron_right),
+            _buildBottomBar(cart),
           ],
         ),
       ),
     );
   }
 
-  Widget _buildOrderItems(dynamic cart, List<dynamic> products) {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.grey[200]!),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+  Widget _buildHeader(String title) {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(20, 16, 20, 8),
+      child: Row(
         children: [
-          const Text('Pesanan', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
-          const SizedBox(height: 12),
-          ...cart.items.map((item) {
-            final product = products.firstWhere(
-              (p) => p.id == item.productId,
-              orElse: () => null,
-            );
-            if (product == null) return const SizedBox.shrink();
-            return Padding(
-              padding: const EdgeInsets.only(bottom: 8),
-              child: Row(
-                children: [
-                  Text('${item.qty}x ', style: const TextStyle(fontWeight: FontWeight.bold)),
-                  Expanded(child: Text(product.name, style: const TextStyle(fontSize: 14))),
-                  Text('Rp ${_formatter.format(product.effectivePrice * item.qty)}'),
-                ],
-              ),
-            );
-          }),
+          GestureDetector(
+            onTap: () => Navigator.maybePop(context),
+            child: Container(
+              width: 36, height: 36,
+              decoration: BoxDecoration(color: AppColors.surfaceAlt, borderRadius: BorderRadius.circular(18)),
+              child: const Icon(Icons.arrow_back, size: 18, color: AppColors.textPrimary),
+            ),
+          ),
+          const SizedBox(width: 12),
+          Expanded(child: Text(title, style: AppText.display(size: 20))),
         ],
+      ),
+    );
+  }
+
+  Widget _section(String title, Widget child) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Padding(
+          padding: const EdgeInsets.fromLTRB(4, 0, 4, 8),
+          child: Text(title, style: AppText.title(size: 14)),
+        ),
+        child,
+      ],
+    );
+  }
+
+  Widget _buildAddressSection() {
+    return DarkCard(
+      color: AppColors.background,
+      padding: const EdgeInsets.all(16),
+      onTap: _showAddressPicker,
+      child: Row(
+        children: [
+          const Icon(Icons.location_on_outlined, color: AppColors.brand, size: 20),
+          const SizedBox(width: 12),
+          Expanded(
+            child: _selectedAddress != null
+                ? Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(_selectedAddress!.label, style: AppText.body(size: 13, weight: FontWeight.w600)),
+                      const SizedBox(height: 2),
+                      Text('${_selectedAddress!.recipientName} • ${_selectedAddress!.recipientPhone}', style: AppText.caption(size: 11, color: AppColors.textMuted)),
+                      const SizedBox(height: 4),
+                      Text('${_selectedAddress!.fullAddress}, ${_selectedAddress!.city} ${_selectedAddress!.postalCode}', style: AppText.caption(size: 11, color: AppColors.textSecondary)),
+                    ],
+                  )
+                : Text('Pilih alamat', style: AppText.body(size: 13, color: AppColors.textMuted)),
+          ),
+          const Icon(Icons.chevron_right, size: 18, color: AppColors.textMuted),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildOrderItems(cart, List products) {
+    return DarkCard(
+      color: AppColors.background,
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        children: cart.items.map<Widget>((item) {
+          final product = products.firstWhere(
+            (p) => p.id == item.productId,
+            orElse: () => null,
+          );
+          if (product == null) return const SizedBox.shrink();
+          return Padding(
+            padding: const EdgeInsets.only(bottom: 8),
+            child: Row(
+              children: [
+                Text('${item.qty}× ', style: AppText.body(size: 13, weight: FontWeight.w600)),
+                Expanded(child: Text(product.name, style: AppText.body(size: 13), maxLines: 1, overflow: TextOverflow.ellipsis)),
+                Text('Rp ${_formatter.format(product.effectivePrice * item.qty)}', style: AppText.body(size: 13, weight: FontWeight.w500)),
+              ],
+            ),
+          );
+        }).toList(),
       ),
     );
   }
 
   Widget _buildCourierSection() {
-    return GestureDetector(
-      onTap: _showCourierPicker,
-      child: Container(
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: Colors.grey[200]!),
-        ),
-        child: Row(
-          children: [
-            const Icon(Icons.local_shipping, color: AppTheme.primaryGreen),
-            const SizedBox(width: 12),
-            Expanded(
-              child: _selectedCourier != null
-                  ? Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(_selectedCourier!, style: const TextStyle(fontWeight: FontWeight.w600)),
-                        Text('Rp ${_formatter.format(_ongkir)}', style: const TextStyle(color: AppTheme.primaryGreen)),
-                      ],
-                    )
-                  : const Text('Pilih kurir pengiriman'),
-            ),
-            const Icon(Icons.chevron_right),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildPaymentSection() {
-    return GestureDetector(
-      onTap: _showPaymentPicker,
-      child: Container(
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: Colors.grey[200]!),
-        ),
-        child: Row(
-          children: [
-            const Icon(Icons.payment, color: AppTheme.primaryGreen),
-            const SizedBox(width: 12),
-            Expanded(
-              child: _selectedPayment != null
-                  ? Text(_selectedPayment!, style: const TextStyle(fontWeight: FontWeight.w600))
-                  : const Text('Pilih metode pembayaran'),
-            ),
-            const Icon(Icons.chevron_right),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildOrderSummary(dynamic cart) {
-    return Container(
+    return DarkCard(
+      color: AppColors.background,
       padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.grey[200]!),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+      onTap: _showCourierPicker,
+      child: Row(
         children: [
-          const Text('Ringkasan Pesanan', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
-          const SizedBox(height: 12),
-          _buildSummaryRow('Subtotal Produk', 'Rp ${_formatter.format(cart.subtotal)}'),
-          _buildSummaryRow('Ongkos Kirim', _selectedCourier != null ? 'Rp ${_formatter.format(_ongkir)}' : '-'),
-          if (cart.voucherDiscount > 0)
-            _buildSummaryRow('Diskon Voucher', '-Rp ${_formatter.format(cart.voucherDiscount)}', isDiscount: true),
-          const Divider(),
-          _buildSummaryRow('Total', 'Rp ${_formatter.format(cart.total + _ongkir)}', isBold: true),
+          const Icon(Icons.local_shipping_outlined, color: AppColors.textPrimary, size: 20),
+          const SizedBox(width: 12),
+          Expanded(
+            child: _selectedCourier != null
+                ? Row(
+                    children: [
+                      Expanded(child: Text(_selectedCourier!, style: AppText.body(size: 13, weight: FontWeight.w500))),
+                      Text('Rp ${_formatter.format(_ongkir)}', style: AppText.body(size: 13, weight: FontWeight.w600, color: AppColors.brand)),
+                    ],
+                  )
+                : Text('Pilih kurir', style: AppText.body(size: 13, color: AppColors.textMuted)),
+          ),
+          const Icon(Icons.chevron_right, size: 18, color: AppColors.textMuted),
         ],
       ),
     );
   }
 
-  Widget _buildSummaryRow(String label, String value, {bool isBold = false, bool isDiscount = false}) {
+  Widget _buildPaymentSection() {
+    return DarkCard(
+      color: AppColors.background,
+      padding: const EdgeInsets.all(16),
+      onTap: _showPaymentPicker,
+      child: Row(
+        children: [
+          const Icon(Icons.payment_outlined, color: AppColors.textPrimary, size: 20),
+          const SizedBox(width: 12),
+          Expanded(
+            child: _selectedPayment != null
+                ? Text(_selectedPayment!, style: AppText.body(size: 13, weight: FontWeight.w500))
+                : Text('Pilih metode', style: AppText.body(size: 13, color: AppColors.textMuted)),
+          ),
+          const Icon(Icons.chevron_right, size: 18, color: AppColors.textMuted),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildOrderSummary(cart) {
+    return DarkCard(
+      color: AppColors.background,
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        children: [
+          _row('Subtotal', 'Rp ${_formatter.format(cart.subtotal)}'),
+          _row('Ongkir', _selectedCourier != null ? 'Rp ${_formatter.format(_ongkir)}' : '-'),
+          if (cart.voucherDiscount > 0) _row('Diskon', '-Rp ${_formatter.format(cart.voucherDiscount)}', valueColor: AppColors.sale),
+          const Padding(padding: EdgeInsets.symmetric(vertical: 8), child: Divider(height: 1, color: AppColors.divider)),
+          _row('Total', 'Rp ${_formatter.format(cart.total + _ongkir)}', bold: true),
+        ],
+      ),
+    );
+  }
+
+  Widget _row(String label, String value, {bool bold = false, Color? valueColor}) {
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 4),
+      padding: const EdgeInsets.symmetric(vertical: 3),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Text(label, style: TextStyle(color: Colors.grey[700])),
-          Text(value, style: TextStyle(
-            fontWeight: isBold ? FontWeight.bold : FontWeight.normal,
-            color: isDiscount ? Colors.red : (isBold ? AppTheme.primaryGreen : null),
-            fontSize: isBold ? 16 : 14,
+          Text(label, style: AppText.body(size: 13, color: AppColors.textSecondary)),
+          Text(value, style: AppText.body(
+            size: bold ? 15 : 13,
+            weight: bold ? FontWeight.w700 : FontWeight.w500,
+            color: valueColor,
           )),
         ],
       ),
     );
   }
 
-  Widget _buildBottomBar(dynamic cart) {
+  Widget _buildBottomBar(cart) {
     return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 8, offset: const Offset(0, -2))],
-      ),
+      padding: const EdgeInsets.fromLTRB(20, 12, 20, 16),
+      decoration: const BoxDecoration(color: AppColors.background, border: Border(top: BorderSide(color: AppColors.divider))),
       child: SafeArea(
+        top: false,
         child: Row(
           children: [
             Expanded(
@@ -444,18 +421,17 @@ class _CheckoutPageState extends State<CheckoutPage> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Text('Total', style: TextStyle(color: Colors.grey[600], fontSize: 12)),
-                  Text('Rp ${_formatter.format(cart.total + _ongkir)}', style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: AppTheme.primaryGreen)),
+                  Text('Total', style: AppText.caption(size: 11, color: AppColors.textMuted)),
+                  Text('Rp ${_formatter.format(cart.total + _ongkir)}', style: AppText.title(size: 18, weight: FontWeight.w700)),
                 ],
               ),
             ),
-            Expanded(
-              child: SizedBox(
-                height: 48,
-                child: ElevatedButton(
-                  onPressed: _placeOrder,
-                  child: const Text('Buat Pesanan', style: TextStyle(fontSize: 16)),
-                ),
+            const SizedBox(width: 12),
+            SizedBox(
+              height: 48, width: 140,
+              child: ElevatedButton(
+                onPressed: _placeOrder,
+                child: Text('Buat Pesanan', style: AppText.button(size: 14)),
               ),
             ),
           ],

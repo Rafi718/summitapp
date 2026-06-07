@@ -4,7 +4,8 @@ import 'package:intl/intl.dart';
 import '../../providers/cart_provider.dart';
 import '../../providers/product_provider.dart';
 import '../../providers/auth_provider.dart';
-import '../../config/app_theme.dart';
+import '../home/alpine_theme.dart';
+import '../home/widgets/shared_widgets.dart';
 
 class CartPage extends StatefulWidget {
   const CartPage({super.key});
@@ -32,11 +33,11 @@ class _CartPageState extends State<CartPage> {
       if (!mounted) return;
       if (error != null) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(error), backgroundColor: Colors.red),
+          SnackBar(content: Text(error), backgroundColor: AppColors.sale),
         );
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Voucher berhasil diterapkan'), backgroundColor: AppTheme.primaryGreen),
+          const SnackBar(content: Text('Voucher berhasil diterapkan')),
         );
       }
     });
@@ -50,18 +51,19 @@ class _CartPageState extends State<CartPage> {
 
     if (!auth.isLoggedIn) {
       return Scaffold(
-        appBar: AppBar(title: const Text('Keranjang')),
-        body: Center(
+        backgroundColor: AppColors.background,
+        body: SafeArea(
           child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(Icons.shopping_cart_outlined, size: 64, color: Colors.grey[400]),
-              const SizedBox(height: 16),
-              Text('Silakan login untuk melihat keranjang', style: TextStyle(color: Colors.grey[600])),
-              const SizedBox(height: 16),
-              ElevatedButton(
-                onPressed: () => Navigator.pushNamed(context, '/login'),
-                child: const Text('Login'),
+              const PageHeader(title: 'Keranjang'),
+              Expanded(
+                child: EmptyState(
+                  icon: Icons.shopping_bag_outlined,
+                  title: 'Belum login',
+                  description: 'Login untuk mulai belanja',
+                  actionLabel: 'Login',
+                  onAction: () => Navigator.pushNamed(context, '/login'),
+                ),
               ),
             ],
           ),
@@ -70,49 +72,66 @@ class _CartPageState extends State<CartPage> {
     }
 
     return Scaffold(
-      appBar: AppBar(
-        title: Text('Keranjang (${cart.itemCount} item)'),
-      ),
-      body: cart.items.isEmpty
-          ? Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
+      backgroundColor: AppColors.background,
+      body: SafeArea(
+        bottom: false,
+        child: cart.items.isEmpty
+            ? Column(
                 children: [
-                  Icon(Icons.shopping_cart_outlined, size: 64, color: Colors.grey[400]),
-                  const SizedBox(height: 16),
-                  Text('Keranjang masih kosong', style: TextStyle(color: Colors.grey[600], fontSize: 16)),
-                  const SizedBox(height: 8),
-                  Text('Yuk tambahin peralatan pendakian!', style: TextStyle(color: Colors.grey[400], fontSize: 13)),
+                  const PageHeader(title: 'Keranjang'),
+                  Expanded(
+                    child: EmptyState(
+                      icon: Icons.shopping_bag_outlined,
+                      title: 'Keranjang kosong',
+                      description: 'Yuk tambahkan peralatan pendakian',
+                      actionLabel: 'Mulai Belanja',
+                      onAction: () => Navigator.pushNamed(context, '/main'),
+                    ),
+                  ),
+                ],
+              )
+            : Column(
+                children: [
+                  PageHeader(
+                    title: 'Keranjang',
+                    subtitle: '${cart.itemCount} item',
+                    trailing: cart.items.isNotEmpty
+                        ? GestureDetector(
+                            onTap: () => cart.clearCart(),
+                            child: Text('Hapus semua', style: AppText.caption(size: 12, color: AppColors.sale, weight: FontWeight.w500)),
+                          )
+                        : null,
+                  ),
+                  Expanded(
+                    child: ListView.builder(
+                      padding: const EdgeInsets.fromLTRB(20, 8, 20, 8),
+                      itemCount: cart.items.length + 1,
+                      itemBuilder: (context, index) {
+                        if (index == cart.items.length) {
+                          return Padding(
+                            padding: const EdgeInsets.only(top: 16),
+                            child: _buildVoucherSection(cart),
+                          );
+                        }
+                        return Padding(
+                          padding: const EdgeInsets.only(bottom: 12),
+                          child: _buildCartItem(cart.items[index], products, cart),
+                        );
+                      },
+                    ),
+                  ),
+                  _buildBottomCheckout(cart),
                 ],
               ),
-            )
-          : Column(
-              children: [
-                Expanded(
-                  child: ListView.builder(
-                    padding: const EdgeInsets.all(16),
-                    itemCount: cart.items.length + 1,
-                    itemBuilder: (context, index) {
-                      if (index == cart.items.length) {
-                        return _buildVoucherSection();
-                      }
-                      return _buildCartItem(cart.items[index], products);
-                    },
-                  ),
-                ),
-                _buildBottomCheckout(cart),
-              ],
-            ),
+      ),
     );
   }
 
-  Widget _buildCartItem(dynamic item, List<dynamic> products) {
-    final cart = context.read<CartProvider>();
+  Widget _buildCartItem(dynamic item, List<dynamic> products, CartProvider cart) {
     final product = products.firstWhere(
       (p) => p.id == item.productId,
       orElse: () => null,
     );
-
     if (product == null) return const SizedBox.shrink();
 
     final imageUrl = product.images.isNotEmpty ? product.images[0] : '';
@@ -123,27 +142,26 @@ class _CartPageState extends State<CartPage> {
       background: Container(
         alignment: Alignment.centerRight,
         padding: const EdgeInsets.only(right: 20),
-        margin: const EdgeInsets.only(bottom: 12),
-        decoration: BoxDecoration(color: Colors.red, borderRadius: BorderRadius.circular(12)),
-        child: const Icon(Icons.delete, color: Colors.white),
+        decoration: BoxDecoration(color: AppColors.sale, borderRadius: BorderRadius.circular(14)),
+        child: const Icon(Icons.delete_outline, color: Colors.white),
       ),
       onDismissed: (_) => cart.removeItem(item.id),
-      child: Container(
-        margin: const EdgeInsets.only(bottom: 12),
+      child: DarkCard(
+        color: AppColors.background,
         padding: const EdgeInsets.all(12),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(12),
-          boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.04), blurRadius: 6, offset: const Offset(0, 2))],
-        ),
         child: Row(
           children: [
-            ClipRRect(
-              borderRadius: BorderRadius.circular(8),
+            Container(
+              width: 72, height: 72,
+              decoration: BoxDecoration(
+                color: AppColors.surfaceAlt,
+                borderRadius: BorderRadius.circular(10),
+              ),
+              clipBehavior: Clip.antiAlias,
               child: Image.network(
-                imageUrl,
-                width: 72, height: 72, fit: BoxFit.cover,
-                errorBuilder: (_, __, ___) => Container(width: 72, height: 72, color: Colors.grey[200], child: const Icon(Icons.image, color: Colors.grey)),
+                imageUrl, fit: BoxFit.cover,
+                errorBuilder: (_, __, ___) => const Icon(Icons.image, color: AppColors.textMuted, size: 24),
+                loadingBuilder: (context, child, p) => p == null ? child : Container(color: AppColors.surfaceAlt),
               ),
             ),
             const SizedBox(width: 12),
@@ -151,30 +169,18 @@ class _CartPageState extends State<CartPage> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(product.name, style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 14), maxLines: 2, overflow: TextOverflow.ellipsis),
+                  Text(product.name, style: AppText.body(size: 13, weight: FontWeight.w600), maxLines: 2, overflow: TextOverflow.ellipsis),
                   const SizedBox(height: 4),
-                  Text('Rp ${_formatter.format(product.effectivePrice)}', style: const TextStyle(color: AppTheme.primaryGreen, fontWeight: FontWeight.bold)),
-                  if (item.variantSize != null) ...[
-                    const SizedBox(height: 2),
-                    Text('Size: ${item.variantSize}', style: TextStyle(fontSize: 12, color: Colors.grey[600])),
-                  ],
+                  Text('Rp ${_formatter.format(product.effectivePrice)}', style: AppText.body(size: 13, weight: FontWeight.w700, color: AppColors.brand)),
                 ],
               ),
             ),
             Column(
+              crossAxisAlignment: CrossAxisAlignment.end,
               children: [
-                Row(
-                  children: [
-                    _buildQtyButton(Icons.remove, () => cart.updateQty(item.id, item.qty - 1)),
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 8),
-                      child: Text('${item.qty}', style: const TextStyle(fontWeight: FontWeight.bold)),
-                    ),
-                    _buildQtyButton(Icons.add, () => cart.updateQty(item.id, item.qty + 1)),
-                  ],
-                ),
-                const SizedBox(height: 4),
-                Text('Rp ${_formatter.format(product.effectivePrice * item.qty)}', style: TextStyle(fontSize: 12, color: Colors.grey[600])),
+                _buildQtyRow(item, cart),
+                const SizedBox(height: 8),
+                Text('Rp ${_formatter.format(product.effectivePrice * item.qty)}', style: AppText.caption(size: 11, color: AppColors.textMuted)),
               ],
             ),
           ],
@@ -183,58 +189,69 @@ class _CartPageState extends State<CartPage> {
     );
   }
 
-  Widget _buildQtyButton(IconData icon, VoidCallback onPressed) {
-    return GestureDetector(
-      onTap: onPressed,
-      child: Container(
-        width: 28, height: 28,
-        decoration: BoxDecoration(
-          color: Colors.grey[100],
-          borderRadius: BorderRadius.circular(6),
-        ),
-        child: Icon(icon, size: 16),
+  Widget _buildQtyRow(dynamic item, CartProvider cart) {
+    return Container(
+      decoration: BoxDecoration(
+        color: AppColors.surfaceAlt,
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          _qtyButton(Icons.remove, () => cart.updateQty(item.id, item.qty - 1)),
+          SizedBox(
+            width: 28,
+            child: Text('${item.qty}', textAlign: TextAlign.center, style: AppText.body(size: 13, weight: FontWeight.w600)),
+          ),
+          _qtyButton(Icons.add, () => cart.updateQty(item.id, item.qty + 1)),
+        ],
       ),
     );
   }
 
-  Widget _buildVoucherSection() {
-    final cart = context.watch<CartProvider>();
-
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.grey[200]!),
+  Widget _qtyButton(IconData icon, VoidCallback onTap) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        width: 26, height: 26,
+        alignment: Alignment.center,
+        child: Icon(icon, size: 14, color: AppColors.textPrimary),
       ),
+    );
+  }
+
+  Widget _buildVoucherSection(CartProvider cart) {
+    return DarkCard(
+      color: AppColors.background,
+      padding: const EdgeInsets.all(16),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text('Voucher Diskon', style: TextStyle(fontWeight: FontWeight.bold)),
+          Text('Voucher Diskon', style: AppText.title(size: 14)),
           const SizedBox(height: 12),
           if (cart.appliedVoucherCode != null)
             Container(
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: AppTheme.primaryGreen.withValues(alpha: 0.1),
-                borderRadius: BorderRadius.circular(8),
+                color: AppColors.brand.withValues(alpha: 0.08),
+                borderRadius: BorderRadius.circular(10),
               ),
               child: Row(
                 children: [
-                  const Icon(Icons.check_circle, color: AppTheme.primaryGreen, size: 20),
+                  const Icon(Icons.check_circle, color: AppColors.brand, size: 18),
                   const SizedBox(width: 8),
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(cart.appliedVoucherCode!, style: const TextStyle(fontWeight: FontWeight.bold, color: AppTheme.primaryGreen)),
-                        Text('Diskon Rp ${_formatter.format(cart.voucherDiscount)}', style: TextStyle(fontSize: 12, color: Colors.grey[600])),
+                        Text(cart.appliedVoucherCode!, style: AppText.body(size: 13, weight: FontWeight.w600, color: AppColors.brand)),
+                        Text('Diskon Rp ${_formatter.format(cart.voucherDiscount)}', style: AppText.caption(size: 11, color: AppColors.textMuted)),
                       ],
                     ),
                   ),
-                  IconButton(
-                    icon: const Icon(Icons.close, size: 18),
-                    onPressed: () => cart.removeVoucher(),
+                  GestureDetector(
+                    onTap: () => cart.removeVoucher(),
+                    child: const Icon(Icons.close, size: 16, color: AppColors.textPrimary),
                   ),
                 ],
               ),
@@ -248,16 +265,22 @@ class _CartPageState extends State<CartPage> {
                     decoration: InputDecoration(
                       hintText: 'Masukkan kode voucher',
                       contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
                       isDense: true,
+                      filled: true,
+                      fillColor: AppColors.surfaceAlt,
+                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: BorderSide.none),
                     ),
+                    style: AppText.body(size: 13),
                   ),
                 ),
                 const SizedBox(width: 8),
-                ElevatedButton(
-                  onPressed: _applyVoucher,
-                  style: ElevatedButton.styleFrom(padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12)),
-                  child: const Text('Pakai'),
+                SizedBox(
+                  height: 38,
+                  child: ElevatedButton(
+                    onPressed: _applyVoucher,
+                    style: ElevatedButton.styleFrom(padding: const EdgeInsets.symmetric(horizontal: 16)),
+                    child: Text('Pakai', style: AppText.button(size: 12)),
+                  ),
                 ),
               ],
             ),
@@ -266,14 +289,15 @@ class _CartPageState extends State<CartPage> {
     );
   }
 
-  Widget _buildBottomCheckout(dynamic cart) {
+  Widget _buildBottomCheckout(CartProvider cart) {
     return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 8, offset: const Offset(0, -2))],
+      padding: const EdgeInsets.fromLTRB(20, 12, 20, 16),
+      decoration: const BoxDecoration(
+        color: AppColors.background,
+        border: Border(top: BorderSide(color: AppColors.divider)),
       ),
       child: SafeArea(
+        top: false,
         child: Row(
           children: [
             Expanded(
@@ -281,25 +305,18 @@ class _CartPageState extends State<CartPage> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Text('Total', style: TextStyle(color: Colors.grey[600], fontSize: 12)),
-                  Text('Rp ${_formatter.format(cart.total)}', style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: AppTheme.primaryGreen)),
+                  Text('Total', style: AppText.caption(size: 11, color: AppColors.textMuted)),
+                  Text('Rp ${_formatter.format(cart.total)}', style: AppText.title(size: 18, weight: FontWeight.w700)),
                 ],
               ),
             ),
-            Expanded(
-              child: SizedBox(
-                height: 48,
-                child: ElevatedButton(
-                  onPressed: () {
-                    final auth = context.read<AuthProvider>();
-                    if (!auth.isLoggedIn) {
-                      Navigator.pushNamed(context, '/login');
-                      return;
-                    }
-                    Navigator.pushNamed(context, '/checkout');
-                  },
-                  child: const Text('Checkout', style: TextStyle(fontSize: 16)),
-                ),
+            const SizedBox(width: 12),
+            SizedBox(
+              height: 48,
+              width: 140,
+              child: ElevatedButton(
+                onPressed: () => Navigator.pushNamed(context, '/checkout'),
+                child: Text('Checkout', style: AppText.button(size: 14)),
               ),
             ),
           ],

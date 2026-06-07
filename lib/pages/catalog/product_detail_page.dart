@@ -5,8 +5,9 @@ import '../../providers/product_provider.dart';
 import '../../providers/cart_provider.dart';
 import '../../providers/auth_provider.dart';
 import '../../models/product.dart';
-import '../../config/app_theme.dart';
-import '../../widgets/product_card.dart';
+import '../home/alpine_theme.dart';
+import '../home/widgets/shared_widgets.dart';
+import '../home/widgets/alpine_product_card.dart';
 
 class ProductDetailPage extends StatefulWidget {
   const ProductDetailPage({super.key});
@@ -20,104 +21,128 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
 
   @override
   Widget build(BuildContext context) {
-    final args = ModalRoute.of(context)!.settings.arguments as Map<String, dynamic>;
-    final productId = args['productId'] as int;
+    final args = ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>?;
+    final productId = args?['productId'] as int?;
     final productProvider = context.read<ProductProvider>();
-    final product = productProvider.getProductById(productId);
+    final product = productId != null ? productProvider.getProductById(productId) : null;
 
     if (product == null) {
       return Scaffold(
-        appBar: AppBar(title: const Text('Detail Produk')),
-        body: const Center(child: Text('Produk tidak ditemukan')),
+        backgroundColor: AppColors.background,
+        body: SafeArea(
+          child: Column(
+            children: [
+              const PageHeader(title: 'Detail Produk', showBackButton: true),
+              Expanded(
+                child: EmptyState(
+                  icon: Icons.image_outlined,
+                  title: 'Produk tidak ditemukan',
+                  actionLabel: 'Kembali',
+                  onAction: () => Navigator.maybePop(context),
+                ),
+              ),
+            ],
+          ),
+        ),
       );
     }
 
-    final relatedProducts = productProvider.getRelatedProducts(productId, product.categoryId);
+    final relatedProducts = productProvider.getRelatedProducts(productId!, product.categoryId);
     final formatter = NumberFormat('#,###', 'id_ID');
 
     return Scaffold(
-      body: CustomScrollView(
-        slivers: [
-          _buildSliverAppBar(product, formatter),
-          SliverToBoxAdapter(
-            child: Padding(
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+      backgroundColor: AppColors.background,
+      body: SafeArea(
+        bottom: false,
+        child: Column(
+          children: [
+            _buildTopBar(product, formatter),
+            Expanded(
+              child: ListView(
+                padding: const EdgeInsets.fromLTRB(20, 8, 20, 100),
                 children: [
-                  _buildPriceSection(product, formatter),
+                  _buildImageCarousel(product),
                   const SizedBox(height: 16),
+                  _buildPriceSection(product, formatter),
+                  const SizedBox(height: 8),
                   _buildInfoRow(product),
-                  const SizedBox(height: 20),
+                  const SizedBox(height: 16),
                   _buildQtySelector(),
-                  const SizedBox(height: 20),
+                  const SizedBox(height: 16),
                   _buildDescription(product),
                   if (product.sizeGuide != null) ...[
-                    const SizedBox(height: 16),
+                    const SizedBox(height: 12),
                     _buildSizeGuide(product),
                   ],
-                  const SizedBox(height: 24),
                   if (relatedProducts.isNotEmpty) ...[
-                    const Text('Produk Terkait', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                    const SizedBox(height: 24),
+                    Text('Produk Terkait', style: AppText.title(size: 16)),
                     const SizedBox(height: 12),
                     SizedBox(
                       height: 230,
                       child: ListView.builder(
                         scrollDirection: Axis.horizontal,
                         itemCount: relatedProducts.length,
-                        itemBuilder: (context, index) {
-                          return SizedBox(width: 170, child: ProductCard(product: relatedProducts[index], compact: true));
-                        },
+                        itemBuilder: (context, index) => ProductCard(product: relatedProducts[index]),
                       ),
                     ),
                   ],
                 ],
               ),
             ),
-          ),
-        ],
+            _buildBottomBar(product, formatter),
+          ],
+        ),
       ),
-      bottomNavigationBar: _buildBottomBar(product),
     );
   }
 
-  Widget _buildSliverAppBar(Product product, NumberFormat formatter) {
-    final images = product.images.isNotEmpty
-        ? product.images
-        : ['https://images.unsplash.com/photo-1504280390367-361c6d9f38f4?w=600'];
-
-    return SliverAppBar(
-      expandedHeight: 300,
-      pinned: true,
-      backgroundColor: AppTheme.primaryGreen,
-      flexibleSpace: FlexibleSpaceBar(
-        background: Stack(
-          children: [
-            PageView.builder(
-              itemCount: images.length,
-              itemBuilder: (context, index) {
-                return Image.network(images[index], fit: BoxFit.cover, errorBuilder: (_, __, ___) =>
-                  Container(color: Colors.grey[200], child: const Icon(Icons.image, size: 80, color: Colors.grey))
-                );
-              },
+  Widget _buildTopBar(Product product, NumberFormat formatter) {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(20, 16, 20, 8),
+      child: Row(
+        children: [
+          GestureDetector(
+            onTap: () => Navigator.maybePop(context),
+            child: Container(
+              width: 36, height: 36,
+              decoration: BoxDecoration(color: AppColors.surfaceAlt, borderRadius: BorderRadius.circular(18)),
+              child: const Icon(Icons.arrow_back, size: 18, color: AppColors.textPrimary),
             ),
-            if (product.isOnSale)
-              Positioned(
-                top: 16,
-                left: 16,
-                child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                  decoration: BoxDecoration(
-                    color: AppTheme.accentOrange,
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: Text(
-                    '-${product.discountPercent}%',
-                    style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 14),
-                  ),
-                ),
-              ),
-          ],
+          ),
+          const Spacer(),
+          GestureDetector(
+            onTap: () {},
+            child: Container(
+              width: 36, height: 36,
+              decoration: BoxDecoration(color: AppColors.surfaceAlt, borderRadius: BorderRadius.circular(18)),
+              child: const Icon(Icons.favorite_border, size: 18, color: AppColors.textPrimary),
+            ),
+          ),
+          const SizedBox(width: 8),
+          GestureDetector(
+            onTap: () {},
+            child: Container(
+              width: 36, height: 36,
+              decoration: BoxDecoration(color: AppColors.surfaceAlt, borderRadius: BorderRadius.circular(18)),
+              child: const Icon(Icons.share_outlined, size: 16, color: AppColors.textPrimary),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildImageCarousel(Product product) {
+    final images = product.images.isNotEmpty ? product.images : [AppAssets.hero];
+    return Container(
+      decoration: BoxDecoration(color: AppColors.surfaceAlt, borderRadius: BorderRadius.circular(16)),
+      clipBehavior: Clip.antiAlias,
+      child: AspectRatio(
+        aspectRatio: 1,
+        child: Image.network(images[0], fit: BoxFit.cover,
+          errorBuilder: (_, __, ___) => const Icon(Icons.image, size: 80, color: AppColors.textMuted),
+          loadingBuilder: (context, child, p) => p == null ? child : Container(color: AppColors.surfaceAlt),
         ),
       ),
     );
@@ -127,16 +152,10 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.end,
       children: [
-        Text(
-          'Rp ${formatter.format(product.effectivePrice)}',
-          style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: AppTheme.primaryGreen),
-        ),
+        Text('Rp ${formatter.format(product.effectivePrice)}', style: AppText.display(size: 22, weight: FontWeight.w700)),
         if (product.isOnSale) ...[
           const SizedBox(width: 8),
-          Text(
-            'Rp ${formatter.format(product.price)}',
-            style: const TextStyle(fontSize: 14, decoration: TextDecoration.lineThrough, color: Colors.grey),
-          ),
+          Text('Rp ${formatter.format(product.price)}', style: AppText.body(size: 13, color: AppColors.textMuted).copyWith(decoration: TextDecoration.lineThrough)),
         ],
       ],
     );
@@ -145,24 +164,22 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
   Widget _buildInfoRow(Product product) {
     return Row(
       children: [
-        _buildInfoChip(Icons.star, '${product.rating}', AppTheme.accentYellow),
-        const SizedBox(width: 16),
-        _buildInfoChip(Icons.shopping_bag, '${product.soldCount} terjual', Colors.grey),
-        const SizedBox(width: 16),
-        _buildInfoChip(Icons.inventory, 'Stok ${product.stock}', product.stock > 10 ? Colors.green : Colors.red),
-        const Spacer(),
-        Text(product.brand, style: const TextStyle(fontWeight: FontWeight.w600, color: AppTheme.primaryGreen)),
+        _infoChip(Icons.star_outline, '${product.rating}', AppColors.warning),
+        const SizedBox(width: 12),
+        _infoChip(Icons.shopping_bag_outlined, '${product.soldCount} terjual', AppColors.textMuted),
+        const SizedBox(width: 12),
+        _infoChip(Icons.inventory_2_outlined, 'Stok ${product.stock}', product.stock > 10 ? AppColors.brand : AppColors.sale),
       ],
     );
   }
 
-  Widget _buildInfoChip(IconData icon, String text, Color color) {
+  Widget _infoChip(IconData icon, String text, Color color) {
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
-        Icon(icon, size: 16, color: color),
+        Icon(icon, size: 14, color: color),
         const SizedBox(width: 4),
-        Text(text, style: TextStyle(fontSize: 13, color: Colors.grey[700])),
+        Text(text, style: AppText.caption(size: 11, color: AppColors.textSecondary)),
       ],
     );
   }
@@ -170,22 +187,30 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
   Widget _buildQtySelector() {
     return Row(
       children: [
-        const Text('Jumlah: ', style: TextStyle(fontSize: 15)),
-        IconButton.filled(
-          onPressed: _qty > 1 ? () => setState(() => _qty--) : null,
-          icon: const Icon(Icons.remove),
-          style: IconButton.styleFrom(backgroundColor: Colors.grey[200]),
-        ),
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16),
-          child: Text('$_qty', style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-        ),
-        IconButton.filled(
-          onPressed: () => setState(() => _qty++),
-          icon: const Icon(Icons.add),
-          style: IconButton.styleFrom(backgroundColor: AppTheme.primaryGreen),
+        Text('Jumlah', style: AppText.body(size: 14, weight: FontWeight.w500)),
+        const Spacer(),
+        Container(
+          decoration: BoxDecoration(color: AppColors.surfaceAlt, borderRadius: BorderRadius.circular(10)),
+          child: Row(
+            children: [
+              _qtyBtn(Icons.remove, _qty > 1 ? () => setState(() => _qty--) : null),
+              SizedBox(width: 36, child: Text('$_qty', textAlign: TextAlign.center, style: AppText.body(size: 14, weight: FontWeight.w600))),
+              _qtyBtn(Icons.add, () => setState(() => _qty++)),
+            ],
+          ),
         ),
       ],
+    );
+  }
+
+  Widget _qtyBtn(IconData icon, VoidCallback? onTap) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        width: 32, height: 32,
+        alignment: Alignment.center,
+        child: Icon(icon, size: 16, color: onTap == null ? AppColors.textMuted : AppColors.textPrimary),
+      ),
     );
   }
 
@@ -193,34 +218,32 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text('Deskripsi', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+        Text(product.name, style: AppText.title(size: 18, weight: FontWeight.w600)),
         const SizedBox(height: 8),
-        Text(product.description, style: TextStyle(fontSize: 14, color: Colors.grey[700], height: 1.6)),
+        Text(product.description, style: AppText.body(size: 13, color: AppColors.textSecondary, height: 1.6)),
         const SizedBox(height: 12),
         Row(
           children: [
-            _buildDetailItem('Berat', '${product.weight}g'),
-            _buildDetailItem('Brand', product.brand),
+            _detailItem('Berat', '${product.weight}g'),
+            const SizedBox(width: 12),
+            _detailItem('Brand', product.brand),
           ],
         ),
       ],
     );
   }
 
-  Widget _buildDetailItem(String label, String value) {
+  Widget _detailItem(String label, String value) {
     return Expanded(
       child: Container(
         padding: const EdgeInsets.all(12),
-        decoration: BoxDecoration(
-          color: Colors.grey[50],
-          borderRadius: BorderRadius.circular(8),
-        ),
+        decoration: BoxDecoration(color: AppColors.surfaceAlt, borderRadius: BorderRadius.circular(10)),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(label, style: TextStyle(fontSize: 12, color: Colors.grey[500])),
-            const SizedBox(height: 4),
-            Text(value, style: const TextStyle(fontWeight: FontWeight.w600)),
+            Text(label, style: AppText.caption(size: 11, color: AppColors.textMuted)),
+            const SizedBox(height: 2),
+            Text(value, style: AppText.body(size: 13, weight: FontWeight.w600)),
           ],
         ),
       ),
@@ -231,79 +254,44 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: Colors.blue[50],
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.blue[100]!),
+        color: AppColors.brand.withValues(alpha: 0.05),
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(color: AppColors.brand.withValues(alpha: 0.15)),
       ),
       child: Row(
         children: [
-          const Icon(Icons.info_outline, color: Colors.blue),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Text(product.sizeGuide!, style: const TextStyle(fontSize: 13)),
-          ),
+          const Icon(Icons.info_outline, color: AppColors.brand, size: 18),
+          const SizedBox(width: 8),
+          Expanded(child: Text(product.sizeGuide!, style: AppText.caption(size: 12, color: AppColors.textPrimary))),
         ],
       ),
     );
   }
 
-  Widget _buildBottomBar(Product product) {
+  Widget _buildBottomBar(Product product, NumberFormat formatter) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 8, offset: const Offset(0, -2))],
-      ),
+      padding: const EdgeInsets.fromLTRB(20, 12, 20, 16),
+      decoration: const BoxDecoration(color: AppColors.background, border: Border(top: BorderSide(color: AppColors.divider))),
       child: SafeArea(
+        top: false,
         child: Row(
           children: [
             Expanded(
-              flex: 2,
               child: SizedBox(
                 height: 48,
-                child: ElevatedButton(
-                  onPressed: product.stock > 0 ? () {
-                    final auth = context.read<AuthProvider>();
-                    final cart = context.read<CartProvider>();
-                    if (!auth.isLoggedIn) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text('Silakan login terlebih dahulu')),
-                      );
-                      return;
-                    }
-                    cart.addToCart(product.id!, qty: _qty);
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(content: Text('${product.name} ditambahkan ke keranjang')),
-                    );
-                  } : null,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: AppTheme.accentOrange,
-                  ),
-                  child: Text(
-                    product.stock > 0 ? 'Tambah ke Keranjang' : 'Stok Habis',
-                    style: const TextStyle(fontSize: 14),
-                  ),
+                child: OutlinedButton(
+                  onPressed: product.stock > 0 ? () => _addToCart(product, buyNow: false) : null,
+                  child: Text('Tambah Keranjang', style: AppText.button(size: 13, color: AppColors.textPrimary)),
                 ),
               ),
             ),
-            const SizedBox(width: 12),
+            const SizedBox(width: 10),
             Expanded(
-              flex: 2,
               child: SizedBox(
                 height: 48,
                 child: ElevatedButton(
-                  onPressed: product.stock > 0 ? () {
-                    final auth = context.read<AuthProvider>();
-                    if (!auth.isLoggedIn) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text('Silakan login terlebih dahulu')),
-                      );
-                      return;
-                    }
-                    context.read<CartProvider>().addToCart(product.id!, qty: _qty);
-                    Navigator.pushNamed(context, '/cart');
-                  } : null,
-                  child: const Text('Beli Sekarang', style: TextStyle(fontSize: 14)),
+                  onPressed: product.stock > 0 ? () => _addToCart(product, buyNow: true) : null,
+                  child: Text('Beli Sekarang', style: AppText.button(size: 13)),
                 ),
               ),
             ),
@@ -311,5 +299,19 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
         ),
       ),
     );
+  }
+
+  void _addToCart(Product product, {required bool buyNow}) {
+    final auth = context.read<AuthProvider>();
+    if (!auth.isLoggedIn) {
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Login dulu')));
+      return;
+    }
+    context.read<CartProvider>().addToCart(product.id!, qty: _qty);
+    if (buyNow) {
+      Navigator.pushNamed(context, '/cart');
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('${product.name} ditambahkan')));
+    }
   }
 }

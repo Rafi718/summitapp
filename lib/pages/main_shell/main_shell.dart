@@ -24,7 +24,7 @@ class _MainShellState extends State<MainShell> {
     super.initState();
     _pages = [
       const HomePage(),
-      CategoryPage(),
+      const CategoryPage(),
       const CartPage(),
       const OrderListPage(),
       const ProfilePage(),
