@@ -1,7 +1,6 @@
 # Summit App
 
 > Aplikasi mobile e-commerce B2C untuk penjualan peralatan pendakian (camping & hiking equipment).
-> Proyek tugas kuliah — disederhanakan dari PRD aslinya: tanpa payment gateway, tanpa backend, data disimpan lokal di SQLite.
 
 ---
 
