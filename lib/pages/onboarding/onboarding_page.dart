@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class OnboardingPage extends StatefulWidget {
   const OnboardingPage({super.key});
@@ -45,8 +46,13 @@ class _OnboardingPageState extends State<OnboardingPage> {
           children: [
             Align(
               alignment: Alignment.topRight,
-              child: TextButton(
-                onPressed: () => Navigator.pushReplacementNamed(context, '/login'),
+              child:               TextButton(
+                onPressed: () async {
+                  final prefs = await SharedPreferences.getInstance();
+                  await prefs.setBool('seen_onboarding', true);
+                  if (!context.mounted) return;
+                  Navigator.pushReplacementNamed(context, '/login');
+                },
                 child: const Text('Lewati'),
               ),
             ),
@@ -102,8 +108,11 @@ class _OnboardingPageState extends State<OnboardingPage> {
                 width: double.infinity,
                 height: 52,
                 child: ElevatedButton(
-                  onPressed: () {
+                  onPressed: () async {
                     if (_currentPage == _pages.length - 1) {
+                      final prefs = await SharedPreferences.getInstance();
+                      await prefs.setBool('seen_onboarding', true);
+                      if (!context.mounted) return;
                       Navigator.pushReplacementNamed(context, '/login');
                     } else {
                       _controller.nextPage(duration: const Duration(milliseconds: 300), curve: Curves.easeInOut);

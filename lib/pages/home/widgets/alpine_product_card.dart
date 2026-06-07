@@ -1,33 +1,28 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import '../alpine_theme.dart';
-import '../../models/product.dart';
+import '../../../models/product.dart';
 
-class AlpineProductCard extends StatelessWidget {
+enum ProductCardStyle { compact, grid }
+
+class ProductCard extends StatelessWidget {
   final Product product;
-  final AlpineCardVariant variant;
+  final ProductCardStyle style;
   final VoidCallback? onTap;
 
-  const AlpineProductCard({
+  const ProductCard({
     super.key,
     required this.product,
-    this.variant = AlpineCardVariant.compact,
+    this.style = ProductCardStyle.compact,
     this.onTap,
   });
 
   @override
   Widget build(BuildContext context) {
-    switch (variant) {
-      case AlpineCardVariant.compact:
-        return _buildCompact(context);
-      case AlpineCardVariant.editorial:
-        return _buildEditorial(context);
-      case AlpineCardVariant.minimal:
-        return _buildMinimal(context);
-    }
+    return style == ProductCardStyle.compact ? _compact(context) : _grid(context);
   }
 
-  Widget _buildCompact(BuildContext context) {
+  Widget _compact(BuildContext context) {
     final formatter = NumberFormat('#,###', 'id_ID');
     final imageUrl = product.images.isNotEmpty ? product.images[0] : '';
 
@@ -39,51 +34,50 @@ class AlpineProductCard extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Container(
-              height: 180,
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(12),
-                color: AlpineTheme.creamDark,
-              ),
-              clipBehavior: Clip.antiAlias,
-              child: Stack(
-                fit: StackFit.expand,
-                children: [
-                  Image.network(imageUrl, fit: BoxFit.cover, errorBuilder: (_, __, ___) =>
-                    Container(color: AlpineTheme.creamDark, child: const Icon(Icons.image, color: AlpineTheme.stone, size: 32)),
-                  ),
-                  if (product.isOnSale)
-                    Positioned(
-                      top: 8, left: 8,
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
-                        decoration: BoxDecoration(color: AlpineTheme.terracotta, borderRadius: BorderRadius.circular(3)),
-                        child: Text('−${product.discountPercent}%', style: AlpineTheme.label(size: 9, color: Colors.white)),
+            AspectRatio(
+              aspectRatio: 1,
+              child: Container(
+                decoration: BoxDecoration(
+                  color: AppColors.surfaceAlt,
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                clipBehavior: Clip.antiAlias,
+                child: Stack(
+                  children: [
+                    Positioned.fill(
+                      child: Image.network(
+                        imageUrl, fit: BoxFit.cover,
+                        errorBuilder: (_, __, ___) => const Icon(Icons.image, color: AppColors.textMuted),
+                        loadingBuilder: (context, child, progress) => progress == null ? child : Container(color: AppColors.surfaceAlt),
                       ),
                     ),
-                ],
+                    if (product.isOnSale)
+                      Positioned(
+                        top: 8, left: 8,
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                          decoration: BoxDecoration(color: AppColors.sale, borderRadius: BorderRadius.circular(4)),
+                          child: Text('−${product.discountPercent}%', style: AppText.label(size: 9, color: Colors.white, weight: FontWeight.w700)),
+                        ),
+                      ),
+                  ],
+                ),
               ),
             ),
             const SizedBox(height: 10),
             Text(
-              product.brand.toUpperCase(),
-              style: AlpineTheme.label(size: 9, color: AlpineTheme.stone),
-            ),
-            const SizedBox(height: 4),
-            Text(
               product.name,
               maxLines: 2,
               overflow: TextOverflow.ellipsis,
-              style: AlpineTheme.body(size: 13, weight: FontWeight.w600, color: AlpineTheme.charcoal, height: 1.3),
+              style: AppText.body(size: 13, weight: FontWeight.w500, color: AppColors.textPrimary, height: 1.3),
             ),
-            const SizedBox(height: 6),
+            const SizedBox(height: 4),
             Row(
-              crossAxisAlignment: CrossAxisAlignment.end,
               children: [
-                Text('Rp${formatter.format(product.effectivePrice)}', style: AlpineTheme.body(size: 13, weight: FontWeight.w800, color: AlpineTheme.forest)),
+                Text('Rp ${formatter.format(product.effectivePrice)}', style: AppText.body(size: 13, weight: FontWeight.w700, color: AppColors.textPrimary)),
                 if (product.isOnSale) ...[
                   const SizedBox(width: 6),
-                  Text('Rp${formatter.format(product.price)}', style: AlpineTheme.body(size: 10, color: AlpineTheme.stone, letterSpacing: 0).copyWith(decoration: TextDecoration.lineThrough)),
+                  Text('Rp ${formatter.format(product.price)}', style: AppText.caption(size: 11, color: AppColors.textMuted).copyWith(decoration: TextDecoration.lineThrough)),
                 ],
               ],
             ),
@@ -93,7 +87,7 @@ class AlpineProductCard extends StatelessWidget {
     );
   }
 
-  Widget _buildEditorial(BuildContext context) {
+  Widget _grid(BuildContext context) {
     final formatter = NumberFormat('#,###', 'id_ID');
     final imageUrl = product.images.isNotEmpty ? product.images[0] : '';
 
@@ -103,44 +97,48 @@ class AlpineProductCard extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           AspectRatio(
-            aspectRatio: 0.85,
+            aspectRatio: 1,
             child: Container(
               decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(8),
-                color: AlpineTheme.creamDark,
+                color: AppColors.surfaceAlt,
+                borderRadius: BorderRadius.circular(12),
               ),
               clipBehavior: Clip.antiAlias,
               child: Stack(
-                fit: StackFit.expand,
                 children: [
-                  Image.network(imageUrl, fit: BoxFit.cover, errorBuilder: (_, __, ___) =>
-                    Container(color: AlpineTheme.creamDark, child: const Icon(Icons.image, color: AlpineTheme.stone)),
-                  ),
-                  Positioned(
-                    top: 8, right: 8,
-                    child: Container(
-                      width: 28, height: 28,
-                      decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(14)),
-                      child: const Icon(Icons.favorite_border, size: 14, color: AlpineTheme.charcoal),
+                  Positioned.fill(
+                    child: Image.network(
+                      imageUrl, fit: BoxFit.cover,
+                      errorBuilder: (_, __, ___) => const Icon(Icons.image, color: AppColors.textMuted),
+                      loadingBuilder: (context, child, progress) => progress == null ? child : Container(color: AppColors.surfaceAlt),
                     ),
                   ),
+                  if (product.isOnSale)
+                    Positioned(
+                      top: 8, left: 8,
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                        decoration: BoxDecoration(color: AppColors.sale, borderRadius: BorderRadius.circular(4)),
+                        child: Text('−${product.discountPercent}%', style: AppText.label(size: 9, color: Colors.white, weight: FontWeight.w700)),
+                      ),
+                    ),
                 ],
               ),
             ),
           ),
           const SizedBox(height: 10),
-          Text(product.brand.toUpperCase(), style: AlpineTheme.label(size: 9, color: AlpineTheme.stone)),
-          const SizedBox(height: 3),
           Text(product.name, maxLines: 2, overflow: TextOverflow.ellipsis,
-            style: AlpineTheme.display(size: 16, weight: FontWeight.w500, color: AlpineTheme.charcoal, height: 1.2, letterSpacing: -0.2),
+            style: AppText.body(size: 13, weight: FontWeight.w500, color: AppColors.textPrimary, height: 1.3),
           ),
-          const SizedBox(height: 6),
+          const SizedBox(height: 4),
           Row(
             children: [
-              Text('Rp${formatter.format(product.effectivePrice)}', style: AlpineTheme.body(size: 14, weight: FontWeight.w800, color: AlpineTheme.forest)),
+              Text('Rp ${formatter.format(product.effectivePrice)}', style: AppText.body(size: 13, weight: FontWeight.w700, color: AppColors.textPrimary)),
               if (product.isOnSale) ...[
                 const SizedBox(width: 6),
-                Text('Rp${formatter.format(product.price)}', style: AlpineTheme.body(size: 11, color: AlpineTheme.stone).copyWith(decoration: TextDecoration.lineThrough)),
+                Expanded(
+                  child: Text('Rp ${formatter.format(product.price)}', style: AppText.caption(size: 10, color: AppColors.textMuted).copyWith(decoration: TextDecoration.lineThrough), overflow: TextOverflow.ellipsis),
+                ),
               ],
             ],
           ),
@@ -148,46 +146,4 @@ class AlpineProductCard extends StatelessWidget {
       ),
     );
   }
-
-  Widget _buildMinimal(BuildContext context) {
-    final formatter = NumberFormat('#,###', 'id_ID');
-    final imageUrl = product.images.isNotEmpty ? product.images[0] : '';
-
-    return GestureDetector(
-      onTap: onTap ?? () => Navigator.pushNamed(context, '/product-detail', arguments: {'productId': product.id}),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Container(
-            width: 72, height: 72,
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(6),
-              color: AlpineTheme.creamDark,
-            ),
-            clipBehavior: Clip.antiAlias,
-            child: Image.network(imageUrl, fit: BoxFit.cover, errorBuilder: (_, __, ___) =>
-              Container(color: AlpineTheme.creamDark, child: const Icon(Icons.image, color: AlpineTheme.stone, size: 20)),
-            ),
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(product.brand.toUpperCase(), style: AlpineTheme.label(size: 9, color: AlpineTheme.stone)),
-                const SizedBox(height: 2),
-                Text(product.name, maxLines: 2, overflow: TextOverflow.ellipsis,
-                  style: AlpineTheme.body(size: 13, weight: FontWeight.w600, color: AlpineTheme.charcoal, height: 1.3),
-                ),
-                const SizedBox(height: 6),
-                Text('Rp${formatter.format(product.effectivePrice)}', style: AlpineTheme.body(size: 13, weight: FontWeight.w800, color: AlpineTheme.forest)),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
 }
-
-enum AlpineCardVariant { compact, editorial, minimal }

@@ -4,9 +4,7 @@ import '../alpine_theme.dart';
 
 class CountdownChip extends StatefulWidget {
   final DateTime endsAt;
-  final Color color;
-
-  const CountdownChip({super.key, required this.endsAt, this.color = AlpineTheme.terracotta});
+  const CountdownChip({super.key, required this.endsAt});
 
   @override
   State<CountdownChip> createState() => _CountdownChipState();
@@ -43,19 +41,19 @@ class _CountdownChipState extends State<CountdownChip> {
     final s = (_remaining.inSeconds % 60).toString().padLeft(2, '0');
 
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       decoration: BoxDecoration(
-        color: AlpineTheme.charcoal,
-        borderRadius: BorderRadius.circular(4),
+        color: AppColors.surfaceAlt,
+        borderRadius: BorderRadius.circular(6),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(Icons.schedule, size: 12, color: widget.color),
-          const SizedBox(width: 6),
+          const Icon(Icons.access_time, size: 12, color: AppColors.textPrimary),
+          const SizedBox(width: 4),
           Text(
             '$h:$m:$s',
-            style: AlpineTheme.mono(size: 12, color: widget.color, weight: FontWeight.w700),
+            style: AppText.caption(size: 11, color: AppColors.textPrimary, weight: FontWeight.w600),
           ),
         ],
       ),

@@ -1,8 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../providers/product_provider.dart';
-import '../../config/app_theme.dart';
-import '../../widgets/product_card.dart';
+import '../../providers/auth_provider.dart';
+import '../../models/category.dart' as models;
+import '../../models/product.dart';
+import 'alpine_theme.dart';
+import 'widgets/section_label.dart';
+import 'widgets/alpine_category_card.dart';
+import 'widgets/alpine_product_card.dart';
+import 'widgets/countdown_chip.dart';
+import 'widgets/hero_banner.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -12,211 +19,233 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
-  final List<Map<String, dynamic>> _banners = [
-    {'title': 'Flash Sale Gear Pendakian', 'subtitle': 'Diskon hingga 40%', 'color': AppTheme.accentOrange},
-    {'title': 'Peralatan Baru Hadir!', 'subtitle': 'Koleksi Naturehike & Deuter', 'color': AppTheme.primaryGreen},
-    {'title': 'Gratis Ongkir!', 'subtitle': 'Minimal belanja Rp 200.000', 'color': const Color(0xFF1565C0)},
-  ];
+  String _greeting() {
+    final hour = DateTime.now().hour;
+    if (hour < 11) return 'Selamat pagi';
+    if (hour < 15) return 'Selamat siang';
+    if (hour < 19) return 'Selamat sore';
+    return 'Selamat malam';
+  }
+
+  String _getFirstName() {
+    final auth = context.read<AuthProvider>();
+    final name = auth.currentUser?.name ?? 'Pendaki';
+    return name.split(' ').first;
+  }
 
   @override
   Widget build(BuildContext context) {
     final productProvider = context.watch<ProductProvider>();
-    final theme = Theme.of(context);
+    final auth = context.watch<AuthProvider>();
+    final userName = _getFirstName();
+    final isLoggedIn = auth.isLoggedIn;
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Summit App'),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.search),
-            onPressed: () => Navigator.pushNamed(context, '/search'),
+      backgroundColor: AppColors.background,
+      body: SafeArea(
+        bottom: false,
+        child: CustomScrollView(
+          physics: const BouncingScrollPhysics(),
+          slivers: [
+            SliverToBoxAdapter(
+              child: _buildTopBar(userName, isLoggedIn),
+            ),
+            SliverToBoxAdapter(child: _buildSearchBar(context)),
+            const SliverToBoxAdapter(child: SizedBox(height: 16)),
+            const SliverToBoxAdapter(child: HeroBanner()),
+            SliverToBoxAdapter(child: _buildCategoriesSection(productProvider.categories)),
+            SliverToBoxAdapter(
+              child: SectionHeader(
+                title: 'Flash Sale',
+                trailing: CountdownChip(endsAt: DateTime.now().add(const Duration(hours: 6, minutes: 23))),
+                action: 'Lihat semua',
+                onAction: () {},
+              ),
+            ),
+            SliverToBoxAdapter(child: _buildFlashSaleList(productProvider.onSaleProducts.take(6).toList())),
+            SliverToBoxAdapter(
+              child: SectionHeader(
+                title: 'Populer',
+                action: 'Lihat semua',
+                onAction: () {},
+              ),
+            ),
+            SliverToBoxAdapter(
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 20),
+                child: _buildGrid(productProvider.popularProducts, crossAxisCount: 2),
+              ),
+            ),
+            SliverToBoxAdapter(
+              child: SectionHeader(
+                title: 'Semua Produk',
+                action: 'Lihat semua',
+                onAction: () {},
+              ),
+            ),
+            SliverToBoxAdapter(
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 20),
+                child: _buildGrid(productProvider.products, crossAxisCount: 2),
+              ),
+            ),
+            const SliverToBoxAdapter(child: SizedBox(height: 100)),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildTopBar(String userName, bool isLoggedIn) {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(20, 16, 20, 12),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          Container(
+            width: 40, height: 40,
+            decoration: BoxDecoration(
+              color: AppColors.textPrimary,
+              borderRadius: BorderRadius.circular(20),
+            ),
+            child: const Center(
+              child: Icon(Icons.terrain, color: Colors.white, size: 20),
+            ),
           ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  _greeting(),
+                  style: AppText.caption(size: 11, color: AppColors.textMuted),
+                ),
+                Text(
+                  isLoggedIn ? userName : 'Masuk dulu',
+                  style: AppText.title(size: 16, weight: FontWeight.w600),
+                ),
+              ],
+            ),
+          ),
+          _iconButton(Icons.notifications_none, () {}),
+          const SizedBox(width: 8),
+          _iconButton(Icons.bookmark_border, () => Navigator.pushNamed(context, '/wishlist')),
         ],
       ),
-      body: productProvider.isLoading
-          ? const Center(child: CircularProgressIndicator())
-          : RefreshIndicator(
-              onRefresh: () => productProvider.loadProducts(),
-              child: SingleChildScrollView(
-                physics: const AlwaysScrollableScrollPhysics(),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    _buildBannerCarousel(),
-                    const SizedBox(height: 20),
-                    _buildCategoryRow(theme),
-                    const SizedBox(height: 24),
-                    _buildSectionTitle('Diskon Spesial', onTap: () {}),
-                    const SizedBox(height: 12),
-                    _buildHorizontalProductList(productProvider.onSaleProducts),
-                    const SizedBox(height: 24),
-                    _buildSectionTitle('Produk Terlaris', onTap: () {}),
-                    const SizedBox(height: 12),
-                    _buildHorizontalProductList(productProvider.popularProducts),
-                    const SizedBox(height: 24),
-                    _buildSectionTitle('Semua Produk', onTap: () {}),
-                    const SizedBox(height: 12),
-                    _buildProductGrid(productProvider.products),
-                    const SizedBox(height: 16),
-                  ],
-                ),
-              ),
-            ),
     );
   }
 
-  Widget _buildBannerCarousel() {
-    return SizedBox(
-      height: 180,
-      child: PageView.builder(
-        itemCount: _banners.length,
-        itemBuilder: (context, index) {
-          final banner = _banners[index];
-          return Container(
-            margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                colors: [banner['color'] as Color, (banner['color'] as Color).withValues(alpha: 0.7)],
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-              ),
-              borderRadius: BorderRadius.circular(16),
-            ),
-            child: Padding(
-              padding: const EdgeInsets.all(24),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Text(banner['title'] as String, style: const TextStyle(color: Colors.white, fontSize: 22, fontWeight: FontWeight.bold)),
-                  const SizedBox(height: 8),
-                  Text(banner['subtitle'] as String, style: const TextStyle(color: Colors.white70, fontSize: 14)),
-                ],
-              ),
-            ),
-          );
-        },
+  Widget _iconButton(IconData icon, VoidCallback onTap) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        width: 40, height: 40,
+        decoration: BoxDecoration(
+          color: AppColors.surfaceAlt,
+          borderRadius: BorderRadius.circular(20),
+        ),
+        child: Icon(icon, size: 18, color: AppColors.textPrimary),
       ),
     );
   }
 
-  Widget _buildCategoryRow(ThemeData theme) {
-    final productProvider = context.read<ProductProvider>();
-    final categories = productProvider.categories.take(6).toList();
+  Widget _buildSearchBar(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(20, 4, 20, 0),
+      child: GestureDetector(
+        onTap: () => Navigator.pushNamed(context, '/search'),
+        child: Container(
+          height: 44,
+          decoration: BoxDecoration(
+            color: AppColors.surfaceAlt,
+            borderRadius: BorderRadius.circular(12),
+          ),
+          padding: const EdgeInsets.symmetric(horizontal: 14),
+          child: Row(
+            children: [
+              const Icon(Icons.search, size: 18, color: AppColors.textMuted),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Text(
+                  'Cari peralatan pendakian...',
+                  style: AppText.body(size: 13, color: AppColors.textMuted),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
 
-    return SizedBox(
-      height: 90,
-      child: ListView.builder(
-        scrollDirection: Axis.horizontal,
-        padding: const EdgeInsets.symmetric(horizontal: 12),
-        itemCount: categories.length + 1,
-        itemBuilder: (context, index) {
-          if (index == categories.length) {
-            return GestureDetector(
-              onTap: () => Navigator.pushNamed(context, '/main'),
-              child: Container(
-                width: 80,
-                margin: const EdgeInsets.symmetric(horizontal: 4),
-                child: Column(
-                  children: [
-                    Container(
-                      width: 56,
-                      height: 56,
-                      decoration: BoxDecoration(
-                        color: Colors.grey[100],
-                        borderRadius: BorderRadius.circular(16),
-                      ),
-                      child: Icon(Icons.chevron_right, color: Colors.grey[600]),
-                    ),
-                    const SizedBox(height: 4),
-                    Text('Lainnya', style: TextStyle(fontSize: 11, color: Colors.grey[600])),
-                  ],
+  Widget _buildCategoriesSection(List<models.Category> categories) {
+    return Padding(
+      padding: const EdgeInsets.only(top: 24),
+      child: SizedBox(
+        height: 100,
+        child: ListView.builder(
+          scrollDirection: Axis.horizontal,
+          padding: const EdgeInsets.symmetric(horizontal: 20),
+          itemCount: categories.length,
+          itemBuilder: (context, index) {
+            return Padding(
+              padding: const EdgeInsets.only(right: 16),
+              child: CategoryTile(
+                category: categories[index],
+                onTap: () => Navigator.pushNamed(
+                  context, '/product-list',
+                  arguments: {'categoryId': categories[index].id, 'categoryName': categories[index].name},
                 ),
               ),
             );
-          }
-
-          final cat = categories[index];
-          final icons = [Icons.cabin, Icons.bedtime, Icons.backpack, Icons.hiking, Icons.style, Icons.lock];
-          return GestureDetector(
-            onTap: () {
-              Navigator.pushNamed(context, '/product-list', arguments: {'categoryId': cat.id});
-            },
-            child: Container(
-              width: 80,
-              margin: const EdgeInsets.symmetric(horizontal: 4),
-              child: Column(
-                children: [
-                  Container(
-                    width: 56,
-                    height: 56,
-                    decoration: BoxDecoration(
-                      color: theme.colorScheme.primary.withValues(alpha: 0.1),
-                      borderRadius: BorderRadius.circular(16),
-                    ),
-                    child: Icon(icons[index], color: theme.colorScheme.primary, size: 28),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(cat.name, style: const TextStyle(fontSize: 11), textAlign: TextAlign.center, maxLines: 2, overflow: TextOverflow.ellipsis),
-                ],
-              ),
-            ),
-          );
-        },
+          },
+        ),
       ),
     );
   }
 
-  Widget _buildSectionTitle(String title, {VoidCallback? onTap}) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Text(title, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-          TextButton(onPressed: onTap, child: const Text('Lihat Semua')),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildHorizontalProductList(List<dynamic> products) {
+  Widget _buildFlashSaleList(List<Product> products) {
     if (products.isEmpty) {
       return const Padding(
-        padding: EdgeInsets.all(16),
-        child: Text('Tidak ada produk', style: TextStyle(color: Colors.grey)),
+        padding: EdgeInsets.symmetric(horizontal: 20),
+        child: Text('Belum ada flash sale', style: TextStyle(color: AppColors.textMuted, fontSize: 13)),
       );
     }
     return SizedBox(
-      height: 240,
+      height: 230,
       child: ListView.builder(
         scrollDirection: Axis.horizontal,
-        padding: const EdgeInsets.symmetric(horizontal: 12),
+        padding: const EdgeInsets.symmetric(horizontal: 20),
         itemCount: products.length,
-        itemBuilder: (context, index) {
-          return SizedBox(width: 170, child: ProductCard(product: products[index], compact: true));
-        },
-      ),
-    );
-  }
-
-  Widget _buildProductGrid(List<dynamic> products) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16),
-      child: GridView.builder(
-        shrinkWrap: true,
-        physics: const NeverScrollableScrollPhysics(),
-        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-          crossAxisCount: 2,
-          crossAxisSpacing: 12,
-          mainAxisSpacing: 12,
-          childAspectRatio: 0.65,
-        ),
-        itemCount: products.take(6).length,
         itemBuilder: (context, index) {
           return ProductCard(product: products[index]);
         },
       ),
+    );
+  }
+
+  Widget _buildGrid(List<Product> products, {int crossAxisCount = 2}) {
+    if (products.isEmpty) {
+      return const Padding(
+        padding: EdgeInsets.symmetric(vertical: 16),
+        child: Text('Belum ada produk', style: TextStyle(color: AppColors.textMuted, fontSize: 13)),
+      );
+    }
+    return GridView.builder(
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
+      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: crossAxisCount,
+        crossAxisSpacing: 12,
+        mainAxisSpacing: 16,
+        childAspectRatio: 0.65,
+      ),
+      itemCount: products.length > 6 ? 6 : products.length,
+      itemBuilder: (context, index) {
+        return ProductCard(product: products[index], style: ProductCardStyle.grid);
+      },
     );
   }
 }

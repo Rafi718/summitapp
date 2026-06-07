@@ -1,5 +1,9 @@
 import 'package:flutter/material.dart';
-import '../../config/app_theme.dart';
+import 'package:provider/provider.dart';
+import 'package:google_fonts/google_fonts.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import '../../providers/auth_provider.dart';
+import '../home/alpine_theme.dart';
 
 class SplashPage extends StatefulWidget {
   const SplashPage({super.key});
@@ -21,12 +25,30 @@ class _SplashPageState extends State<SplashPage> with SingleTickerProviderStateM
       vsync: this,
     );
     _fadeAnimation = Tween<double>(begin: 0, end: 1).animate(
-      CurvedAnimation(parent: _controller, curve: Curves.easeIn),
+      CurvedAnimation(parent: _controller, curve: Curves.easeOut),
     );
-    _scaleAnimation = Tween<double>(begin: 0.8, end: 1).animate(
-      CurvedAnimation(parent: _controller, curve: Curves.elasticOut),
+    _scaleAnimation = Tween<double>(begin: 0.9, end: 1).animate(
+      CurvedAnimation(parent: _controller, curve: Curves.easeOutCubic),
     );
     _controller.forward();
+    _navigateAfter();
+  }
+
+  Future<void> _navigateAfter() async {
+    await Future.delayed(const Duration(milliseconds: 1800));
+    if (!mounted) return;
+
+    final prefs = await SharedPreferences.getInstance();
+    final hasSeenOnboarding = prefs.getBool('seen_onboarding') ?? false;
+    final auth = context.read<AuthProvider>();
+
+    if (auth.isLoggedIn) {
+      Navigator.pushReplacementNamed(context, '/main');
+    } else if (hasSeenOnboarding) {
+      Navigator.pushReplacementNamed(context, '/login');
+    } else {
+      Navigator.pushReplacementNamed(context, '/onboarding');
+    }
   }
 
   @override
@@ -38,7 +60,7 @@ class _SplashPageState extends State<SplashPage> with SingleTickerProviderStateM
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppTheme.primaryGreen,
+      backgroundColor: AppColors.background,
       body: Center(
         child: FadeTransition(
           opacity: _fadeAnimation,
@@ -47,35 +69,24 @@ class _SplashPageState extends State<SplashPage> with SingleTickerProviderStateM
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                const Icon(Icons.terrain, size: 80, color: Colors.white),
-                const SizedBox(height: 16),
-                const Text(
-                  'Summit',
-                  style: TextStyle(
-                    fontSize: 40,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.white,
-                    letterSpacing: 4,
+                Container(
+                  width: 72, height: 72,
+                  decoration: BoxDecoration(
+                    color: AppColors.textPrimary,
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  child: const Center(
+                    child: Icon(Icons.terrain, size: 36, color: Colors.white),
                   ),
                 ),
-                const SizedBox(height: 8),
-                Text(
-                  'Peralatan Pendakian',
-                  style: TextStyle(
-                    fontSize: 16,
-                    color: Colors.white.withValues(alpha: 0.8),
-                    letterSpacing: 2,
-                  ),
-                ),
-                const SizedBox(height: 32),
-                const SizedBox(
-                  width: 24,
-                  height: 24,
-                  child: CircularProgressIndicator(
-                    strokeWidth: 2,
-                    valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
-                  ),
-                ),
+                const SizedBox(height: 24),
+                Text('Summit', style: GoogleFonts.inter(
+                  fontSize: 28, fontWeight: FontWeight.w700, color: AppColors.textPrimary, letterSpacing: -0.5, height: 1,
+                )),
+                const SizedBox(height: 6),
+                Text('Peralatan Pendakian', style: GoogleFonts.inter(
+                  fontSize: 12, color: AppColors.textMuted, fontWeight: FontWeight.w500, height: 1.2,
+                )),
               ],
             ),
           ),
