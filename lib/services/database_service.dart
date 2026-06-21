@@ -31,6 +31,48 @@ class DatabaseService {
         // Column may already exist; ignore.
       }
     }
+    if (oldVersion < 3) {
+      try {
+        await db.execute('ALTER TABLE users ADD COLUMN is_admin INTEGER NOT NULL DEFAULT 0');
+      } catch (_) {
+        // Column may already exist; ignore.
+      }
+      // Backfill: any existing user whose email contains "admin" gets is_admin=1
+      // so the previous demo behavior is preserved after the migration.
+      try {
+        await db.execute("UPDATE users SET is_admin = 1 WHERE LOWER(email) LIKE '%admin%'");
+      } catch (_) {
+        // Ignore backfill errors.
+      }
+    }
+    if (oldVersion < 4) {
+      // cost_price on products: the wholesale/buying price per unit.
+      // Used to compute margin and gross profit.
+      try {
+        await db.execute('ALTER TABLE products ADD COLUMN cost_price INTEGER NOT NULL DEFAULT 0');
+      } catch (_) {
+        // Column may already exist; ignore.
+      }
+      // cost_price on order_items: a snapshot of the product's cost_price
+      // at the time of purchase. This ensures historical profit reports
+      // stay accurate even if the product's cost_price changes later.
+      try {
+        await db.execute('ALTER TABLE order_items ADD COLUMN cost_price INTEGER NOT NULL DEFAULT 0');
+      } catch (_) {
+        // Column may already exist; ignore.
+      }
+      // Backfill: estimate cost_price as 65% of the current effective
+      // price for existing products/orders so old data still shows a
+      // reasonable margin in reports. New seed inserts carry their own
+      // explicit cost_price.
+      try {
+        await db.execute(
+          "UPDATE products SET cost_price = CAST(price * 0.65 AS INTEGER) WHERE cost_price = 0",
+        );
+      } catch (_) {
+        // Ignore backfill errors.
+      }
+    }
   }
 
   static Future<void> _onCreate(Database db, int version) async {
@@ -43,6 +85,7 @@ class DatabaseService {
         phone TEXT,
         photo TEXT,
         email_verified_at TEXT,
+        is_admin INTEGER NOT NULL DEFAULT 0,
         created_at TEXT NOT NULL
       )
     ''');
@@ -68,6 +111,7 @@ class DatabaseService {
         weight INTEGER NOT NULL,
         price INTEGER NOT NULL,
         discount_price INTEGER,
+        cost_price INTEGER NOT NULL DEFAULT 0,
         stock INTEGER NOT NULL,
         rating REAL DEFAULT 0,
         review_count INTEGER DEFAULT 0,
@@ -154,6 +198,7 @@ class DatabaseService {
         product_id INTEGER NOT NULL,
         product_name TEXT NOT NULL,
         price INTEGER NOT NULL,
+        cost_price INTEGER NOT NULL DEFAULT 0,
         qty INTEGER NOT NULL,
         subtotal INTEGER NOT NULL,
         variant_size TEXT,

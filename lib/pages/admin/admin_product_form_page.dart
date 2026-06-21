@@ -29,6 +29,7 @@ class _AdminProductFormPageState extends State<AdminProductFormPage> {
   final _brandController = TextEditingController();
   final _priceController = TextEditingController();
   final _discountPriceController = TextEditingController();
+  final _costPriceController = TextEditingController();
   final _stockController = TextEditingController();
   final _weightController = TextEditingController();
   final _descriptionController = TextEditingController();
@@ -63,6 +64,7 @@ class _AdminProductFormPageState extends State<AdminProductFormPage> {
       _brandController.text = product.brand;
       _priceController.text = product.price.toString();
       _discountPriceController.text = product.discountPrice?.toString() ?? '';
+      _costPriceController.text = product.costPrice.toString();
       _stockController.text = product.stock.toString();
       _weightController.text = product.weight.toString();
       _descriptionController.text = product.description;
@@ -77,6 +79,7 @@ class _AdminProductFormPageState extends State<AdminProductFormPage> {
     _brandController.dispose();
     _priceController.dispose();
     _discountPriceController.dispose();
+    _costPriceController.dispose();
     _stockController.dispose();
     _weightController.dispose();
     _descriptionController.dispose();
@@ -147,6 +150,7 @@ class _AdminProductFormPageState extends State<AdminProductFormPage> {
       weight: int.tryParse(_weightController.text) ?? 0,
       price: int.tryParse(_priceController.text) ?? 0,
       discountPrice: _discountPriceController.text.trim().isEmpty ? null : int.tryParse(_discountPriceController.text),
+      costPrice: int.tryParse(_costPriceController.text) ?? 0,
       stock: int.tryParse(_stockController.text) ?? 0,
       rating: 0,
       reviewCount: 0,
@@ -255,6 +259,8 @@ class _AdminProductFormPageState extends State<AdminProductFormPage> {
                             _buildTextField(_priceController, 'Harga (Rp)', required: true, keyboardType: TextInputType.number),
                             const SizedBox(height: 16),
                             _buildTextField(_discountPriceController, 'Harga Diskon (Rp)', required: false, keyboardType: TextInputType.number, hint: 'Opsional'),
+                            const SizedBox(height: 16),
+                            _buildTextField(_costPriceController, 'Harga Beli / HPP (Rp)', required: true, keyboardType: TextInputType.number, hint: 'Modal produk dari supplier'),
                             const SizedBox(height: 16),
                             Row(
                               children: [

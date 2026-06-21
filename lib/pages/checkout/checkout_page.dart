@@ -382,7 +382,7 @@ class _CheckoutPageState extends State<CheckoutPage> {
     );
   }
 
-  Widget _buildOrderSummary(cart) {
+  Widget _buildOrderSummary(CartProvider cart) {
     return DarkCard(
       color: AppColors.background,
       padding: const EdgeInsets.all(16),
@@ -415,7 +415,7 @@ class _CheckoutPageState extends State<CheckoutPage> {
     );
   }
 
-  Widget _buildBottomBar(cart) {
+  Widget _buildBottomBar(CartProvider cart) {
     return Container(
       padding: const EdgeInsets.fromLTRB(20, 12, 20, 16),
       decoration: const BoxDecoration(color: AppColors.background, border: Border(top: BorderSide(color: AppColors.divider))),

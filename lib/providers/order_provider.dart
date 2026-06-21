@@ -86,6 +86,7 @@ class OrderProvider extends ChangeNotifier {
         productId: item.productId,
         productName: product.name,
         price: product.effectivePrice,
+        costPrice: product.costPrice,
         qty: item.qty,
         subtotal: product.effectivePrice * item.qty,
         variantSize: item.variantSize,

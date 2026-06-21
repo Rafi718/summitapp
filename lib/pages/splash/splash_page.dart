@@ -40,6 +40,7 @@ class _SplashPageState extends State<SplashPage> with SingleTickerProviderStateM
 
     final prefs = await SharedPreferences.getInstance();
     final hasSeenOnboarding = prefs.getBool('seen_onboarding') ?? false;
+    if (!mounted) return;
     final auth = context.read<AuthProvider>();
 
     if (auth.isLoggedIn) {

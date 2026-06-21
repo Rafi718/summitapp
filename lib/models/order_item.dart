@@ -4,6 +4,7 @@ class OrderItem {
   final int productId;
   final String productName;
   final int price;
+  final int costPrice;
   final int qty;
   final int subtotal;
   final String? variantSize;
@@ -15,6 +16,7 @@ class OrderItem {
     required this.productId,
     required this.productName,
     required this.price,
+    this.costPrice = 0,
     required this.qty,
     required this.subtotal,
     this.variantSize,
@@ -28,6 +30,7 @@ class OrderItem {
       'product_id': productId,
       'product_name': productName,
       'price': price,
+      'cost_price': costPrice,
       'qty': qty,
       'subtotal': subtotal,
       'variant_size': variantSize,
@@ -42,10 +45,17 @@ class OrderItem {
       productId: map['product_id'] as int? ?? 0,
       productName: map['product_name'] as String? ?? '',
       price: map['price'] as int? ?? 0,
+      costPrice: map['cost_price'] as int? ?? 0,
       qty: map['qty'] as int? ?? 0,
       subtotal: map['subtotal'] as int? ?? 0,
       variantSize: map['variant_size'] as String?,
       variantColor: map['variant_color'] as String?,
     );
   }
+
+  /// Total cost for this line item = cost per unit * qty.
+  int get totalCost => costPrice * qty;
+
+  /// Gross profit for this line item = revenue - cost.
+  int get profit => subtotal - totalCost;
 }

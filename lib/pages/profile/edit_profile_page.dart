@@ -92,10 +92,12 @@ class _EditProfilePageState extends State<EditProfilePage> {
                   height: 48,
                   child: ElevatedButton(
                     onPressed: () async {
+                      final messenger = ScaffoldMessenger.of(context);
+                      final navigator = Navigator.of(context);
                       await auth.updateProfile(name: _nameController.text.trim(), phone: _phoneController.text.trim());
                       if (!mounted) return;
-                      Navigator.pop(context);
-                      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Profil diperbarui')));
+                      navigator.pop();
+                      messenger.showSnackBar(const SnackBar(content: Text('Profil diperbarui')));
                     },
                     child: Text('Simpan', style: AppText.button(size: 14)),
                   ),

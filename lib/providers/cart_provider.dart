@@ -144,7 +144,7 @@ class CartProvider extends ChangeNotifier {
 
     if (usedCount >= quota) return 'Kuota voucher sudah habis';
     if (DateTime.now().isAfter(validUntil)) return 'Voucher sudah kadaluarsa';
-    if (minPurchase != null && subtotal < minPurchase) return 'Minimal belanja Rp${minPurchase} untuk voucher ini';
+    if (minPurchase != null && subtotal < minPurchase) return 'Minimal belanja Rp$minPurchase untuk voucher ini';
 
     _appliedVoucherCode = code.toUpperCase();
 

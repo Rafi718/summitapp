@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import '../../models/user.dart';
 import '../../providers/auth_provider.dart';
 import '../home/alpine_theme.dart';
 import '../home/widgets/shared_widgets.dart';
@@ -81,7 +82,7 @@ class ProfilePage extends StatelessWidget {
     );
   }
 
-  Widget _buildProfileHeader(user) {
+  Widget _buildProfileHeader(User user) {
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 20),
       padding: const EdgeInsets.all(20),

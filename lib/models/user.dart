@@ -6,6 +6,7 @@ class User {
   final String? phone;
   final String? photo;
   final String? emailVerifiedAt;
+  final bool isAdmin;
   final String createdAt;
 
   User({
@@ -16,6 +17,7 @@ class User {
     this.phone,
     this.photo,
     this.emailVerifiedAt,
+    this.isAdmin = false,
     required this.createdAt,
   });
 
@@ -28,6 +30,7 @@ class User {
       'phone': phone,
       'photo': photo,
       'email_verified_at': emailVerifiedAt,
+      'is_admin': isAdmin ? 1 : 0,
       'created_at': createdAt,
     };
   }
@@ -41,6 +44,7 @@ class User {
       phone: map['phone'] as String?,
       photo: map['photo'] as String?,
       emailVerifiedAt: map['email_verified_at'] as String?,
+      isAdmin: (map['is_admin'] as int?) == 1,
       createdAt: map['created_at'] as String? ?? '',
     );
   }
@@ -53,6 +57,7 @@ class User {
     String? phone,
     String? photo,
     String? emailVerifiedAt,
+    bool? isAdmin,
     String? createdAt,
   }) {
     return User(
@@ -63,12 +68,8 @@ class User {
       phone: phone ?? this.phone,
       photo: photo ?? this.photo,
       emailVerifiedAt: emailVerifiedAt ?? this.emailVerifiedAt,
+      isAdmin: isAdmin ?? this.isAdmin,
       createdAt: createdAt ?? this.createdAt,
     );
   }
-
-  /// Admin gating: any email containing "admin" is treated as an admin
-  /// account. Keep this loose for the college-demo seed; tighten in prod
-  /// by replacing with an `is_admin` column on the users table.
-  bool get isAdmin => email.toLowerCase().contains('admin');
 }

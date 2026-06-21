@@ -39,7 +39,7 @@ class SeedData {
         'rainfly full coverage. Dilengkapi 4 tie-out point untuk extra '
         'ventilasi. Cocok untuk camping keluarga dan basecamp.',
       brand: 'Eiger', weight: 4800,
-      price: 1850000, discountPrice: 1599000,
+      price: 1850000, discountPrice: 1599000, costPrice: 1050000,
       stock: 12, rating: 4.6, reviewCount: 142, soldCount: 320,
       images: ['https://d1yutv2xslo29o.cloudfront.net/product/variant/photo/910004893_ORANGE_1_e151.jpg'],
       sizeGuide: 'Dimensi 240x210x130 cm | Cocok untuk 3-4 orang | Packing 60x20 cm',
@@ -53,7 +53,7 @@ class SeedData {
         'coated double layer, freestanding dengan 2 trekking pole. '
         'Pilihan favorit pendaki ultralight untuk thru-hike dan fastpack.',
       brand: 'Naturehike', weight: 1900,
-      price: 1250000, discountPrice: 1099000,
+      price: 1250000, discountPrice: 1099000, costPrice: 720000,
       stock: 18, rating: 4.7, reviewCount: 89, soldCount: 215,
       images: ['https://down-id.img.susercontent.com/file/c38422349320607d050005d68a0a65d9'],
       sizeGuide: 'Dimensi 210x130x105 cm | Packing 45x15 cm | 2 pintu',
@@ -71,7 +71,7 @@ class SeedData {
         'fiber 1500 g, shell polyester 190T breathable. Tersedia warna '
         'hijau army dan biru navy. Cocok untuk camping dataran tinggi.',
       brand: 'Eiger', weight: 1600,
-      price: 650000,
+      price: 650000, costPrice: 420000,
       stock: 25, rating: 4.4, reviewCount: 178, soldCount: 480,
       images: ['https://d1yutv2xslo29o.cloudfront.net/product/variant/media/188486f72f32cb15e2417a6e03247a6c.jpg'],
       sizeGuide: 'Panjang 200 cm | Bahu 80 cm | Suhu nyaman 0°C',
@@ -85,7 +85,7 @@ class SeedData {
         'Kompresibel jadi sangat kecil, cocok untuk pendakian gunung '
         'tinggi dan alpine climbing. Termasuk stuff sack compression.',
       brand: 'Naturehike', weight: 1100,
-      price: 1850000, discountPrice: 1599000,
+      price: 1850000, discountPrice: 1599000, costPrice: 1050000,
       stock: 15, rating: 4.8, reviewCount: 234, soldCount: 560,
       images: ['https://sg-test-11.slatic.net/p/4df032399f2bbaf6198df0d5077bae16.png'],
       sizeGuide: 'Panjang 200 cm | Bahu 80 cm | Suhu ekstrim -5°C',
@@ -104,7 +104,7 @@ class SeedData {
         'ergonomis. Banyak kompartemen termasuk bottom compartment untuk '
         'sleeping bag. Pilihan profesional mountain guide.',
       brand: 'Deuter', weight: 2400,
-      price: 3850000,
+      price: 3850000, costPrice: 2500000,
       stock: 8, rating: 4.9, reviewCount: 76, soldCount: 145,
       images: ['https://images.unsplash.com/photo-1553062407-98eeb64c6a62?w=600'],
       sizeGuide: '60+10 L | Cocok torso 45-55 cm | Beban max 25 kg',
@@ -118,7 +118,7 @@ class SeedData {
         'kg, banyak kompartemen termasuk sleeve hydration, rain cover '
         'built-in di bagian bawah. Cocok untuk pemula dan pendaki kasual.',
       brand: 'Eiger', weight: 1400,
-      price: 1100000, discountPrice: 899000,
+      price: 1100000, discountPrice: 899000, costPrice: 580000,
       stock: 22, rating: 4.5, reviewCount: 198, soldCount: 420,
       images: ['https://images.unsplash.com/photo-1622260614153-03223fb72052?w=600'],
       sizeGuide: '40 L | Cocok torso 45-50 cm | Rain cover included',
@@ -136,7 +136,7 @@ class SeedData {
         'Terrain untuk traksi maksimal, chassis Advanced untuk stabilitas '
         'di medan teknis. Quicklace system untuk fit presisi.',
       brand: 'Salomon', weight: 460,
-      price: 2650000, discountPrice: 2299000,
+      price: 2650000, discountPrice: 2299000, costPrice: 1500000,
       stock: 14, rating: 4.9, reviewCount: 287, soldCount: 680,
       images: ['https://images.unsplash.com/photo-1606107557195-0e29a4b5b4aa?w=600'],
       sizeGuide: 'EU 39-46 | True to size | Half size up untuk kaus kaki tebal',
@@ -150,7 +150,7 @@ class SeedData {
         'protection. Cocok untuk trek ringan, fast-hiking, dan travel. '
         'Breathable mesh upper untuk iklim tropis.',
       brand: 'Eiger', weight: 380,
-      price: 1100000,
+      price: 1100000, costPrice: 720000,
       stock: 28, rating: 4.4, reviewCount: 156, soldCount: 380,
       images: ['https://images.unsplash.com/photo-1542838132-92c53300491e?w=600'],
       sizeGuide: 'EU 39-44 | True to size | Low cut',
@@ -168,7 +168,7 @@ class SeedData {
         'taped, adjustable hood, breathable. Pilihan untuk hujan ringan '
         'sampai sedang, lipat jadi kecil masuk saku.',
       brand: 'The North Face', weight: 380,
-      price: 1850000, discountPrice: 1599000,
+      price: 1850000, discountPrice: 1599000, costPrice: 1050000,
       stock: 20, rating: 4.7, reviewCount: 198, soldCount: 450,
       images: ['https://images.unsplash.com/photo-1551488831-00ddcb6c6bd3?w=600'],
       sizeGuide: 'S-XXL | Regular fit, layered friendly',
@@ -182,7 +182,7 @@ class SeedData {
         'Water repellent DWR, windproof ringan, cocok untuk aktivitas '
         'dinamis seperti hiking dan climbing. 2 hand pocket + 1 chest.',
       brand: 'Consina', weight: 450,
-      price: 950000, discountPrice: 799000,
+      price: 950000, discountPrice: 799000, costPrice: 520000,
       stock: 30, rating: 4.5, reviewCount: 145, soldCount: 380,
       images: ['https://images.unsplash.com/photo-1544923246-77307dd270b5?w=600'],
       sizeGuide: 'S-XL | Slim fit | Stretch 4-way',
@@ -200,7 +200,7 @@ class SeedData {
         'climbing gym. Dual Core Construction, 4 gear loops, adjustable '
         'waist belt dengan buckle speed.',
       brand: 'Black Diamond', weight: 360,
-      price: 1350000,
+      price: 1350000, costPrice: 880000,
       stock: 10, rating: 4.8, reviewCount: 67, soldCount: 165,
       images: ['https://images.unsplash.com/photo-1551442959-804204a214a7?w=600'],
       sizeGuide: 'S/M/L/XL | Waist 71-91 cm | Leg 51-66 cm',
@@ -214,7 +214,7 @@ class SeedData {
         'alloy, compact, auto-lock ganda. UIAA certified, gate 25 mm '
         'untuk kompatibilitas berbagai aplikasi.',
       brand: 'Petzl', weight: 85,
-      price: 425000, discountPrice: 365000,
+      price: 425000, discountPrice: 365000, costPrice: 240000,
       stock: 40, rating: 4.9, reviewCount: 234, soldCount: 620,
       images: ['https://m.petzl.com/sfc/servlet.shepherd/version/download/068w0000002nIE1AAM'],
       createdAt: '2026-04-15',
@@ -231,7 +231,7 @@ class SeedData {
         'included) dan kompatibel baterai AAA. 3 brightness levels, red '
         'light mode untuk night vision, reflective strap untuk visibilitas.',
       brand: 'Petzl', weight: 75,
-      price: 1100000, discountPrice: 949000,
+      price: 1100000, discountPrice: 949000, costPrice: 620000,
       stock: 35, rating: 4.8, reviewCount: 198, soldCount: 540,
       images: ['https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQOjIv28GwfPeYDQ-4_FqErh8UqgCx3bjGKKo8F1jAaYgzLTinNowGUVgs&s=10'],
       createdAt: '2026-04-20',
@@ -244,7 +244,7 @@ class SeedData {
         'brightness adjustment di temple. Cocok untuk trail running, '
         'camping, dan caving entry-level.',
       brand: 'Black Diamond', weight: 86,
-      price: 850000,
+      price: 850000, costPrice: 550000,
       stock: 28, rating: 4.6, reviewCount: 167, soldCount: 420,
       images: ['https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=600'],
       createdAt: '2026-04-25',
@@ -261,7 +261,7 @@ class SeedData {
         'Foam density 19 kg/m³, anti-slip top, ringan, easy packing. '
         'Pilihan tepat untuk camping keluarga dan pendakian ringan.',
       brand: 'Naturehike', weight: 850,
-      price: 580000, discountPrice: 489000,
+      price: 580000, discountPrice: 489000, costPrice: 320000,
       stock: 24, rating: 4.5, reviewCount: 134, soldCount: 380,
       images: ['https://images.unsplash.com/photo-1508873696983-2dfd5898f08b?w=600'],
       sizeGuide: '180x60 cm | Packing 30x15 cm | R-value 3.2',
@@ -275,7 +275,7 @@ class SeedData {
         'Body mapping V-chamber design, synthetic insulation, berat '
         'hanya 700 g. Inflatable 10-15 kali hembusan nafas.',
       brand: 'Klymit', weight: 700,
-      price: 1450000,
+      price: 1450000, costPrice: 950000,
       stock: 12, rating: 4.7, reviewCount: 89, soldCount: 195,
       images: ['https://klymit.com/cdn/shop/files/Klymit_InsulatedStaticV-Red_Front_Deep_Sack_v2.jpg?v=1757437551&width=2000'],
       sizeGuide: '182x58 cm | Packing 22x10 cm | R-value 4.4',
@@ -293,7 +293,7 @@ class SeedData {
         'di angin, simmer control presisi, hanya 83 g. Kompatibel '
         'dengan canister threaded EN417.',
       brand: 'MSR', weight: 83,
-      price: 1450000,
+      price: 1450000, costPrice: 950000,
       stock: 18, rating: 4.8, reviewCount: 156, soldCount: 340,
       images: ['https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRdC-8DNU10a629viBijJvA_BKVfEJ-7RrymGy-biXHWXPbDd3mi-TM_uQ&s=10'],
       createdAt: '2026-05-10',
@@ -306,7 +306,7 @@ class SeedData {
         'handle removable. Hard-anodized aluminium, ringan, distribusi '
         'panas merata. Ideal untuk camping keluarga atau basecamp.',
       brand: 'Trangia', weight: 1100,
-      price: 1850000, discountPrice: 1650000,
+      price: 1850000, discountPrice: 1650000, costPrice: 1080000,
       stock: 10, rating: 4.7, reviewCount: 78, soldCount: 195,
       images: ['https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSs-vDQqLM18XL7CVVMCcTQLIcIz-NpuCBPeQ1BuaSy-ORditXkLMoxACPr&s=10'],
       createdAt: '2026-05-15',
@@ -323,7 +323,7 @@ class SeedData {
         'Grip Aergon ergonomis, strap adjustable, twist-lock untuk '
         'keamanan. Berat 250 g per pair, kuat untuk beban berat.',
       brand: 'Leki', weight: 250,
-      price: 1350000, discountPrice: 1150000,
+      price: 1350000, discountPrice: 1150000, costPrice: 750000,
       stock: 20, rating: 4.7, reviewCount: 134, soldCount: 280,
       images: ['https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQi72LDbLpkqnshixELFt0O5n5TjQKRAn1zH7UtGCDbrg&s=10'],
       createdAt: '2026-05-20',
@@ -336,7 +336,7 @@ class SeedData {
         'tahan lama. Lensa Plutonite dengan kejernahan optik tinggi '
         'dan tahan benturan. Cocok untuk hiking, driving, dan harian.',
       brand: 'Oakley', weight: 50,
-      price: 1850000,
+      price: 1850000, costPrice: 1200000,
       stock: 25, rating: 4.6, reviewCount: 198, soldCount: 380,
       images: ['https://images.unsplash.com/photo-1577803645773-f96470509666?w=600'],
       createdAt: '2026-05-25',

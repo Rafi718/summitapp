@@ -7,6 +7,7 @@ class Product {
   final int weight;
   final int price;
   final int? discountPrice;
+  final int costPrice;
   final int stock;
   final double rating;
   final int reviewCount;
@@ -25,6 +26,7 @@ class Product {
     required this.weight,
     required this.price,
     this.discountPrice,
+    this.costPrice = 0,
     required this.stock,
     this.rating = 0,
     this.reviewCount = 0,
@@ -45,6 +47,7 @@ class Product {
       'weight': weight,
       'price': price,
       'discount_price': discountPrice,
+      'cost_price': costPrice,
       'stock': stock,
       'rating': rating,
       'review_count': reviewCount,
@@ -66,6 +69,7 @@ class Product {
       weight: map['weight'] as int? ?? 0,
       price: map['price'] as int? ?? 0,
       discountPrice: map['discount_price'] as int?,
+      costPrice: map['cost_price'] as int? ?? 0,
       stock: map['stock'] as int? ?? 0,
       rating: (map['rating'] as num?)?.toDouble() ?? 0,
       reviewCount: map['review_count'] as int? ?? 0,
@@ -80,4 +84,13 @@ class Product {
   int get effectivePrice => discountPrice ?? price;
   bool get isOnSale => discountPrice != null && discountPrice! < price;
   int get discountPercent => isOnSale ? ((price - discountPrice!) / price * 100).round() : 0;
+
+  /// Profit per unit sold = selling price - cost price.
+  int get profitPerUnit => effectivePrice - costPrice;
+
+  /// Margin percentage = profit / selling price * 100.
+  int get marginPercent {
+    if (effectivePrice == 0) return 0;
+    return ((profitPerUnit / effectivePrice) * 100).round();
+  }
 }

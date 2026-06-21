@@ -21,7 +21,7 @@ class HeroBanner extends StatelessWidget {
           Image.network(
             AppAssets.hero,
             fit: BoxFit.cover,
-            errorBuilder: (_, __, ___) => Container(color: AppColors.surfaceAlt),
+            errorBuilder: (_, _, _) => Container(color: AppColors.surfaceAlt),
             loadingBuilder: (context, child, progress) => progress == null ? child : Container(color: AppColors.surfaceAlt),
           ),
           Container(

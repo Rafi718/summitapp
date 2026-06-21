@@ -16,6 +16,7 @@ class AppColors {
   static const Color sale = Color(0xFFDC2626);
   static const Color success = Color(0xFF16A34A);
   static const Color warning = Color(0xFFF59E0B);
+  static const Color info = Color(0xFF2563EB);
 }
 
 class AppText {

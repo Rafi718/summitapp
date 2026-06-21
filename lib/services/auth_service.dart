@@ -52,6 +52,7 @@ class AuthService {
         name: 'Admin Summit',
         email: 'admin@summit.com',
         password: 'admin123',
+        isAdmin: true,
         createdAt: DateTime.now().toIso8601String(),
       );
       await db.insert('users', admin.toMap());
@@ -197,5 +198,25 @@ class AuthService {
     );
     if (results.isNotEmpty) return Address.fromMap(results.first);
     return null;
+  }
+
+  Future<User?> getUserById(int id) async {
+    final db = await DatabaseService.database;
+    final results = await db.query('users', where: 'id = ?', whereArgs: [id], limit: 1);
+    if (results.isNotEmpty) return User.fromMap(results.first);
+    return null;
+  }
+
+  Future<Address?> getAddressById(int id) async {
+    final db = await DatabaseService.database;
+    final results = await db.query('addresses', where: 'id = ?', whereArgs: [id], limit: 1);
+    if (results.isNotEmpty) return Address.fromMap(results.first);
+    return null;
+  }
+
+  Future<List<User>> getAllUsers() async {
+    final db = await DatabaseService.database;
+    final results = await db.query('users', orderBy: 'created_at DESC');
+    return results.map((m) => User.fromMap(m)).toList();
   }
 }
