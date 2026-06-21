@@ -6,6 +6,7 @@ import '../../providers/cart_provider.dart';
 import '../../providers/auth_provider.dart';
 import '../../models/product.dart';
 import '../home/alpine_theme.dart';
+import '../../widgets/app_image.dart';
 import '../home/widgets/shared_widgets.dart';
 import '../home/widgets/alpine_product_card.dart';
 
@@ -200,9 +201,10 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
       clipBehavior: Clip.antiAlias,
       child: AspectRatio(
         aspectRatio: 1,
-        child: Image.network(images[0], fit: BoxFit.cover,
-          errorBuilder: (_, __, ___) => const Icon(Icons.image, size: 80, color: AppColors.textMuted),
-          loadingBuilder: (context, child, p) => p == null ? child : Container(color: AppColors.surfaceAlt),
+        child: AppImage(
+          src: images[0],
+          fit: BoxFit.cover,
+          placeholder: const Icon(Icons.image, size: 80, color: AppColors.textMuted),
         ),
       ),
     );
@@ -346,7 +348,7 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
               child: SizedBox(
                 height: 48,
                 child: OutlinedButton(
-                  onPressed: product.stock > 0 ? () => _addToCart(product, buyNow: false) : null,
+                  onPressed: product.stock > 0 ? () { _addToCart(product, buyNow: false); } : null,
                   child: Text('Tambah Keranjang', style: AppText.button(size: 13, color: AppColors.textPrimary)),
                 ),
               ),
@@ -356,7 +358,7 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
               child: SizedBox(
                 height: 48,
                 child: ElevatedButton(
-                  onPressed: product.stock > 0 ? () => _addToCart(product, buyNow: true) : null,
+                  onPressed: product.stock > 0 ? () { _addToCart(product, buyNow: true); } : null,
                   child: Text('Beli Sekarang', style: AppText.button(size: 13)),
                 ),
               ),
@@ -367,13 +369,22 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
     );
   }
 
-  void _addToCart(Product product, {required bool buyNow}) {
+  Future<void> _addToCart(Product product, {required bool buyNow}) async {
     final auth = context.read<AuthProvider>();
-    if (!auth.isLoggedIn) {
+    if (!auth.isLoggedIn || auth.currentUser?.id == null) {
       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Login dulu')));
       return;
     }
-    context.read<CartProvider>().addToCart(product.id!, qty: _qty);
+
+    final cart = context.read<CartProvider>();
+    final userId = auth.currentUser!.id!;
+    if (cart.userId != userId) {
+      await cart.loadCart(userId);
+    }
+
+    await cart.addToCart(product.id!, qty: _qty);
+    if (!mounted) return;
+
     if (buyNow) {
       Navigator.pushNamed(context, '/cart');
     } else {

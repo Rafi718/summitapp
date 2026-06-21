@@ -1,7 +1,11 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:path_provider/path_provider.dart';
 import '../../providers/product_provider.dart';
 import '../../models/category.dart' as models;
+import '../../widgets/app_image.dart';
 import '../home/alpine_theme.dart';
 import '../home/widgets/shared_widgets.dart';
 
@@ -44,6 +48,7 @@ class AdminCategoryFormPage extends StatefulWidget {
 class _AdminCategoryFormPageState extends State<AdminCategoryFormPage> {
   final _formKey = GlobalKey<FormState>();
   final _nameController = TextEditingController();
+  final _imageController = TextEditingController();
   String _selectedIcon = 'category';
   bool _isEditing = false;
   bool _isSaving = false;
@@ -70,6 +75,7 @@ class _AdminCategoryFormPageState extends State<AdminCategoryFormPage> {
       _isEditing = true;
       _existingCategoryId = categoryId;
       _nameController.text = category.name;
+      _imageController.text = category.image ?? '';
       _selectedIcon = category.icon;
     });
   }
@@ -77,10 +83,46 @@ class _AdminCategoryFormPageState extends State<AdminCategoryFormPage> {
   @override
   void dispose() {
     _nameController.dispose();
+    _imageController.dispose();
     super.dispose();
   }
 
   void _markChanged() => _hasChanges = true;
+
+  Future<void> _pickImage() async {
+    try {
+      final picker = ImagePicker();
+      final picked = await picker.pickImage(
+        source: ImageSource.gallery,
+        maxWidth: 800,
+        imageQuality: 85,
+      );
+      if (picked == null) return;
+
+      final appDir = await getApplicationDocumentsDirectory();
+      final imagesDir = Directory('${appDir.path}/category_images');
+      if (!await imagesDir.exists()) {
+        await imagesDir.create(recursive: true);
+      }
+
+      final originalName = picked.path.split(Platform.pathSeparator).last;
+      final timestamp = DateTime.now().millisecondsSinceEpoch;
+      final savedName = '${timestamp}_$originalName';
+      final savedPath = '${imagesDir.path}/$savedName';
+
+      await File(picked.path).copy(savedPath);
+
+      setState(() {
+        _imageController.text = savedPath;
+        _markChanged();
+      });
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Gagal memilih gambar: $e'), backgroundColor: AppColors.sale),
+      );
+    }
+  }
 
   Future<void> _save() async {
     if (!_formKey.currentState!.validate()) return;
@@ -91,6 +133,7 @@ class _AdminCategoryFormPageState extends State<AdminCategoryFormPage> {
       id: _isEditing ? _existingCategoryId : null,
       name: _nameController.text.trim(),
       icon: _selectedIcon,
+      image: _imageController.text.trim().isEmpty ? null : _imageController.text.trim(),
     );
 
     final provider = context.read<ProductProvider>();
@@ -180,7 +223,9 @@ class _AdminCategoryFormPageState extends State<AdminCategoryFormPage> {
                         ),
                       ),
                       const SizedBox(height: 24),
-                      Text('Pilih Ikon', style: AppText.title(size: 14)),
+                      _buildImageField(),
+                      const SizedBox(height: 24),
+                      Text('Pilih Ikon (fallback)', style: AppText.title(size: 14)),
                       const SizedBox(height: 12),
                       _buildIconGrid(),
                     ],
@@ -198,6 +243,7 @@ class _AdminCategoryFormPageState extends State<AdminCategoryFormPage> {
   Widget _buildPreview() {
     final icon = _iconFromName(_selectedIcon);
     final name = _nameController.text.trim().isEmpty ? 'Nama Kategori' : _nameController.text.trim();
+    final imageUrl = _imageController.text.trim();
 
     return Container(
       padding: const EdgeInsets.all(20),
@@ -214,7 +260,10 @@ class _AdminCategoryFormPageState extends State<AdminCategoryFormPage> {
               color: Colors.white.withValues(alpha: 0.15),
               borderRadius: BorderRadius.circular(12),
             ),
-            child: Icon(icon, color: Colors.white, size: 24),
+            clipBehavior: Clip.antiAlias,
+            child: imageUrl.isNotEmpty
+                ? AppImage(src: imageUrl, fit: BoxFit.cover, placeholder: Icon(icon, color: Colors.white, size: 24))
+                : Icon(icon, color: Colors.white, size: 24),
           ),
           const SizedBox(width: 14),
           Expanded(
@@ -229,6 +278,80 @@ class _AdminCategoryFormPageState extends State<AdminCategoryFormPage> {
           ),
         ],
       ),
+    );
+  }
+
+  Widget _buildImageField() {
+    final imageUrl = _imageController.text.trim();
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text('Gambar Kategori', style: AppText.title(size: 14)),
+        const SizedBox(height: 12),
+        TextFormField(
+          controller: _imageController,
+          style: AppText.body(size: 14),
+          onChanged: (_) => setState(() {}),
+          decoration: InputDecoration(
+            labelText: 'URL Gambar atau path file',
+            labelStyle: AppText.caption(size: 12, color: AppColors.textSecondary),
+            hintText: 'https://... atau pilih dari galeri',
+            hintStyle: AppText.caption(size: 12, color: AppColors.textMuted),
+            border: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: const BorderSide(color: AppColors.border)),
+            enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: const BorderSide(color: AppColors.border)),
+            focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: const BorderSide(color: AppColors.brand)),
+            contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+          ),
+        ),
+        const SizedBox(height: 10),
+        Row(
+          children: [
+            ElevatedButton.icon(
+              onPressed: _pickImage,
+              icon: const Icon(Icons.photo_library, size: 18),
+              label: const Text('Pilih dari Galeri'),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.brand,
+                foregroundColor: Colors.white,
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+              ),
+            ),
+            if (imageUrl.isNotEmpty) ...[
+              const SizedBox(width: 8),
+              OutlinedButton.icon(
+                onPressed: () {
+                  setState(() {
+                    _imageController.clear();
+                    _markChanged();
+                  });
+                },
+                icon: const Icon(Icons.delete_outline, size: 18),
+                label: const Text('Hapus'),
+                style: OutlinedButton.styleFrom(
+                  foregroundColor: AppColors.sale,
+                  side: const BorderSide(color: AppColors.sale),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                ),
+              ),
+            ],
+          ],
+        ),
+        if (imageUrl.isNotEmpty) ...[
+          const SizedBox(height: 12),
+          Container(
+            width: 120,
+            height: 120,
+            decoration: BoxDecoration(
+              color: AppColors.surfaceAlt,
+              borderRadius: BorderRadius.circular(10),
+              border: Border.all(color: AppColors.border),
+            ),
+            clipBehavior: Clip.antiAlias,
+            child: AppImage(src: imageUrl, fit: BoxFit.cover),
+          ),
+        ],
+      ],
     );
   }
 

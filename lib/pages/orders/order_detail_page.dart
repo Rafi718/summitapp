@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
 import '../../providers/order_provider.dart';
 import '../../providers/product_provider.dart';
+import '../../widgets/app_image.dart';
 import '../home/alpine_theme.dart';
 import '../home/widgets/shared_widgets.dart';
 
@@ -97,9 +98,10 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
                                     width: 56, height: 56,
                                     decoration: BoxDecoration(color: AppColors.surfaceAlt, borderRadius: BorderRadius.circular(8)),
                                     clipBehavior: Clip.antiAlias,
-                                    child: Image.network(imageUrl, fit: BoxFit.cover,
-                                      errorBuilder: (_, __, ___) => const Icon(Icons.image, color: AppColors.textMuted, size: 20),
-                                      loadingBuilder: (context, child, p) => p == null ? child : Container(color: AppColors.surfaceAlt),
+                                    child: AppImage(
+                                      src: imageUrl,
+                                      fit: BoxFit.cover,
+                                      placeholder: const Icon(Icons.image, color: AppColors.textMuted, size: 20),
                                     ),
                                   ),
                                   const SizedBox(width: 12),

@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../providers/product_provider.dart';
 import '../../models/category.dart' as models;
+import '../../widgets/app_image.dart';
 import '../home/alpine_theme.dart';
 
 class CategoryPage extends StatelessWidget {
@@ -152,7 +153,7 @@ class CategoryPage extends StatelessWidget {
   }
 
   Widget _buildCategoryCard(BuildContext context, models.Category cat, int index) {
-    final imageUrl = AppAssets.categoryImages[cat.id] ?? AppAssets.hero;
+    final imageUrl = cat.image ?? AppAssets.categoryImages[cat.id] ?? AppAssets.hero;
 
     return GestureDetector(
       onTap: () {
@@ -167,11 +168,10 @@ class CategoryPage extends StatelessWidget {
         child: Stack(
           fit: StackFit.expand,
           children: [
-            Image.network(
-              imageUrl,
+            AppImage(
+              src: imageUrl,
               fit: BoxFit.cover,
-              errorBuilder: (_, __, ___) => const Icon(Icons.terrain, color: AppColors.textMuted, size: 40),
-              loadingBuilder: (context, child, progress) => progress == null ? child : Container(color: AppColors.surfaceAlt),
+              placeholder: const Icon(Icons.terrain, color: AppColors.textMuted, size: 40),
             ),
             Container(
               decoration: BoxDecoration(

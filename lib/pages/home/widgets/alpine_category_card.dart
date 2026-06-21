@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../widgets/app_image.dart';
 import '../alpine_theme.dart';
 import '../../../models/category.dart' as models;
 
@@ -29,13 +30,10 @@ class CategoryTile extends StatelessWidget {
               borderRadius: BorderRadius.circular(16),
             ),
             clipBehavior: Clip.antiAlias,
-            child: Image.network(
-              AppAssets.categoryImages[category.id] ?? AppAssets.hero,
+            child: AppImage(
+              src: category.image ?? AppAssets.categoryImages[category.id] ?? AppAssets.hero,
               fit: BoxFit.cover,
-              errorBuilder: (_, __, ___) => const Icon(Icons.terrain, color: AppColors.textMuted, size: 28),
-              loadingBuilder: (context, child, progress) => progress == null
-                  ? child
-                  : Container(color: AppColors.surfaceAlt),
+              placeholder: const Icon(Icons.terrain, color: AppColors.textMuted, size: 28),
             ),
           ),
           const SizedBox(height: 8),

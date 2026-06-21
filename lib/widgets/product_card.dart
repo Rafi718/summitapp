@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import '../models/product.dart';
 import '../config/app_theme.dart';
+import 'app_image.dart';
 
 class ProductCard extends StatelessWidget {
   final Product product;
@@ -30,14 +31,14 @@ class ProductCard extends StatelessWidget {
           children: [
             Stack(
               children: [
-                ClipRRect(
+                  ClipRRect(
                   borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
-                  child: Image.network(
-                    imageUrl,
+                  child: AppImage(
+                    src: imageUrl,
                     height: compact ? 110 : 140,
                     width: double.infinity,
                     fit: BoxFit.cover,
-                    errorBuilder: (_, __, ___) => Container(
+                    placeholder: Container(
                       height: compact ? 110 : 140,
                       color: Colors.grey[200],
                       child: const Icon(Icons.image, color: Colors.grey, size: 40),

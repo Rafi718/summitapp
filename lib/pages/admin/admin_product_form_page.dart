@@ -1,7 +1,11 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:path_provider/path_provider.dart';
 import '../../providers/product_provider.dart';
 import '../../models/product.dart';
+import '../../widgets/app_image.dart';
 import '../home/alpine_theme.dart';
 import '../home/widgets/shared_widgets.dart';
 
@@ -81,6 +85,41 @@ class _AdminProductFormPageState extends State<AdminProductFormPage> {
   }
 
   void _markChanged() => _hasChanges = true;
+
+  Future<void> _pickImage() async {
+    try {
+      final picker = ImagePicker();
+      final picked = await picker.pickImage(
+        source: ImageSource.gallery,
+        maxWidth: 1200,
+        imageQuality: 85,
+      );
+      if (picked == null) return;
+
+      final appDir = await getApplicationDocumentsDirectory();
+      final imagesDir = Directory('${appDir.path}/product_images');
+      if (!await imagesDir.exists()) {
+        await imagesDir.create(recursive: true);
+      }
+
+      final originalName = picked.path.split(Platform.pathSeparator).last;
+      final timestamp = DateTime.now().millisecondsSinceEpoch;
+      final savedName = '${timestamp}_$originalName';
+      final savedPath = '${imagesDir.path}/$savedName';
+
+      await File(picked.path).copy(savedPath);
+
+      setState(() {
+        _imagesController.text = savedPath;
+        _markChanged();
+      });
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Gagal memilih gambar: $e'), backgroundColor: AppColors.sale),
+      );
+    }
+  }
 
   Future<void> _save() async {
     if (!_formKey.currentState!.validate()) return;
@@ -277,9 +316,9 @@ class _AdminProductFormPageState extends State<AdminProductFormPage> {
           controller: _imagesController,
           style: AppText.body(size: 14),
           decoration: InputDecoration(
-            labelText: 'Gambar URL',
+            labelText: 'Gambar URL atau path file',
             labelStyle: AppText.caption(size: 12, color: AppColors.textSecondary),
-            hintText: 'Pisahkan multiple URL dengan koma',
+            hintText: 'URL, atau pilih dari galeri',
             hintStyle: AppText.caption(size: 12, color: AppColors.textMuted),
             border: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: const BorderSide(color: AppColors.border)),
             enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: const BorderSide(color: AppColors.border)),
@@ -287,24 +326,51 @@ class _AdminProductFormPageState extends State<AdminProductFormPage> {
             contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
           ),
         ),
+        const SizedBox(height: 10),
+        Row(
+          children: [
+            ElevatedButton.icon(
+              onPressed: _pickImage,
+              icon: const Icon(Icons.photo_library, size: 18),
+              label: const Text('Pilih dari Galeri'),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.brand,
+                foregroundColor: Colors.white,
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+              ),
+            ),
+            if (previewUrl.isNotEmpty) ...[
+              const SizedBox(width: 8),
+              OutlinedButton.icon(
+                onPressed: () {
+                  setState(() {
+                    _imagesController.clear();
+                    _markChanged();
+                  });
+                },
+                icon: const Icon(Icons.delete_outline, size: 18),
+                label: const Text('Hapus'),
+                style: OutlinedButton.styleFrom(
+                  foregroundColor: AppColors.sale,
+                  side: const BorderSide(color: AppColors.sale),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                ),
+              ),
+            ],
+          ],
+        ),
         if (previewUrl.isNotEmpty) ...[
-          const SizedBox(height: 8),
+          const SizedBox(height: 12),
           Container(
-            width: 80,
-            height: 80,
+            width: 120,
+            height: 120,
             decoration: BoxDecoration(
               color: AppColors.surfaceAlt,
               borderRadius: BorderRadius.circular(10),
               border: Border.all(color: AppColors.border),
             ),
             clipBehavior: Clip.antiAlias,
-            child: Image.network(
-              previewUrl,
-              fit: BoxFit.cover,
-              errorBuilder: (_, _, _) => const Icon(Icons.broken_image, color: AppColors.textMuted),
-              loadingBuilder: (context, child, progress) =>
-                  progress == null ? child : const Center(child: CircularProgressIndicator(strokeWidth: 2, color: AppColors.textMuted)),
-            ),
+            child: AppImage(src: previewUrl, fit: BoxFit.cover),
           ),
         ],
       ],

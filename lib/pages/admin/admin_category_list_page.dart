@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import '../../config/app_routes.dart';
 import '../../models/category.dart' as models;
 import '../../providers/product_provider.dart';
+import '../../widgets/app_image.dart';
 import '../home/alpine_theme.dart';
 import '../home/widgets/shared_widgets.dart';
 
@@ -134,6 +135,7 @@ class _CategoryCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final icon = _iconFromName(category.icon);
+    final imageUrl = category.image ?? AppAssets.categoryImages[category.id];
 
     return Container(
       margin: const EdgeInsets.only(bottom: 10),
@@ -152,7 +154,10 @@ class _CategoryCard extends StatelessWidget {
               color: AppColors.brand.withValues(alpha: 0.08),
               borderRadius: BorderRadius.circular(12),
             ),
-            child: Icon(icon, color: AppColors.brand, size: 24),
+            clipBehavior: Clip.antiAlias,
+            child: imageUrl != null
+                ? AppImage(src: imageUrl, fit: BoxFit.cover, placeholder: Icon(icon, color: AppColors.brand, size: 24))
+                : Icon(icon, color: AppColors.brand, size: 24),
           ),
           Expanded(
             child: Padding(

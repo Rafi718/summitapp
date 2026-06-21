@@ -6,19 +6,24 @@ import '../models/voucher.dart';
 /// categories with real brand names, realistic specs, and Unsplash images
 /// chosen to visually match the product type.
 ///
+/// You can also use local asset paths, e.g.:
+///   images: ['assets/images/products/nama-file.jpg']
+/// Just place the image files in assets/images/products/ (already registered
+/// in pubspec.yaml) and run Admin Panel → "Reset Data ke Default" to reload.
+///
 /// Reset via Admin Panel → "Reset Data ke Default" to re-apply after edits.
 class SeedData {
   static List<Category> get categories => [
-    Category(id: 1, name: 'Tenda', icon: 'camping', parentId: null),
-    Category(id: 2, name: 'Sleeping Bag', icon: 'bedtime', parentId: null),
-    Category(id: 3, name: 'Carrier / Tas Gunung', icon: 'backpack', parentId: null),
-    Category(id: 4, name: 'Sepatu Gunung', icon: 'hiking', parentId: null),
-    Category(id: 5, name: 'Jaket Outdoor', icon: 'style', parentId: null),
-    Category(id: 6, name: 'Harness & Carabiner', icon: 'lock', parentId: null),
-    Category(id: 7, name: 'Headlamp & Senter', icon: 'light', parentId: null),
-    Category(id: 8, name: 'Matras', icon: 'airline_seat_flat', parentId: null),
-    Category(id: 9, name: 'Cooking Set', icon: 'outdoor_grill', parentId: null),
-    Category(id: 10, name: 'Aksesoris', icon: 'category', parentId: null),
+    Category(id: 1, name: 'Tenda', icon: 'camping', parentId: null, image: 'https://antarestar.com/wp-content/uploads/2021/01/Tenda-Camping-200-x-200-1.png'),
+    Category(id: 2, name: 'Sleeping Bag', icon: 'bedtime', parentId: null, image: 'https://kodiakcanvas.com/cdn/shop/files/3444FullFold__26445.1666291961.1280.1280.png?v=1767811442&width=1214'),
+    Category(id: 3, name: 'Carrier / Tas Gunung', icon: 'backpack', parentId: null, image: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRjeQUkl8qMDKGfqbhUEEXaM2Yeyhh0dP7NZ-O9nS5A8okM_e9a2oTubXw&s=10'),
+    Category(id: 4, name: 'Sepatu Gunung', icon: 'hiking', parentId: null, image: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTVeF1TDUbD8PcY2xJRTMfPhYhvhw15SU4Ifv39NPA1rhhhXbzESdMVMEI&s=10'),
+    Category(id: 5, name: 'Jaket Outdoor', icon: 'style', parentId: null, image: 'https://images.tokopedia.net/img/cache/700/aphluv/1997/1/1/9e8b3be0bcdf438a981737e30754533a~.jpeg.webp'),
+    Category(id: 6, name: 'Harness & Carabiner', icon: 'lock', parentId: null, image: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRvWTxs9JoWE6OR2NiDXCCcrpbEq2a-Er5SNyUfMUfU3Q&s=10'),
+    Category(id: 7, name: 'Headlamp & Senter', icon: 'light', parentId: null, image: 'https://media.monotaro.id/mid01/full/Keselamatan%20Kerja(K3)%2C%20Perlindungan%20Diri%20%26%20Kesehatan/Alat%20Keselamatan%20Kerja/Alat%20Pelindung%20Jatuh/Produk%20Terkait%20Sabuk%20Keselamatan/Petzl%20Headlamp%20(Senter%20Kepala)/P103084806-1.jpeg'),
+    Category(id: 8, name: 'Matras', icon: 'airline_seat_flat', parentId: null, image: 'https://down-id.img.susercontent.com/file/097eba2a30b1b724a67dd3585d93984a'),
+    Category(id: 9, name: 'Cooking Set', icon: 'outdoor_grill', parentId: null, image: 'https://p16-oec-va.ibyteimg.com/tos-maliva-i-o3syd03w52-us/c7fd28b3480a4fa9a0699f2fdebdbdbd~tplv-o3syd03w52-resize-jpeg:700:0.jpeg'),
+    Category(id: 10, name: 'Aksesoris', icon: 'category', parentId: null, image: 'https://images.unsplash.com/photo-1577803645773-f96470509666?w=400&q=80'),
   ];
 
   static List<Product> get products => [
@@ -36,7 +41,7 @@ class SeedData {
       brand: 'Eiger', weight: 4800,
       price: 1850000, discountPrice: 1599000,
       stock: 12, rating: 4.6, reviewCount: 142, soldCount: 320,
-      images: ['https://images.unsplash.com/photo-1504280390367-361c6d9f38f4?w=600'],
+      images: ['https://d1yutv2xslo29o.cloudfront.net/product/variant/photo/910004893_ORANGE_1_e151.jpg'],
       sizeGuide: 'Dimensi 240x210x130 cm | Cocok untuk 3-4 orang | Packing 60x20 cm',
       createdAt: '2026-01-15',
     ),
@@ -50,7 +55,7 @@ class SeedData {
       brand: 'Naturehike', weight: 1900,
       price: 1250000, discountPrice: 1099000,
       stock: 18, rating: 4.7, reviewCount: 89, soldCount: 215,
-      images: ['https://images.unsplash.com/photo-1478827536114-da961b7f86d2?w=600'],
+      images: ['https://down-id.img.susercontent.com/file/c38422349320607d050005d68a0a65d9'],
       sizeGuide: 'Dimensi 210x130x105 cm | Packing 45x15 cm | 2 pintu',
       createdAt: '2026-01-20',
     ),
@@ -68,7 +73,7 @@ class SeedData {
       brand: 'Eiger', weight: 1600,
       price: 650000,
       stock: 25, rating: 4.4, reviewCount: 178, soldCount: 480,
-      images: ['https://images.unsplash.com/photo-1520256780061-e2a7b67a2a04?w=600'],
+      images: ['https://d1yutv2xslo29o.cloudfront.net/product/variant/media/188486f72f32cb15e2417a6e03247a6c.jpg'],
       sizeGuide: 'Panjang 200 cm | Bahu 80 cm | Suhu nyaman 0°C',
       createdAt: '2026-02-01',
     ),
@@ -82,7 +87,7 @@ class SeedData {
       brand: 'Naturehike', weight: 1100,
       price: 1850000, discountPrice: 1599000,
       stock: 15, rating: 4.8, reviewCount: 234, soldCount: 560,
-      images: ['https://images.unsplash.com/photo-1478131143081-80f7f84ca84d?w=600'],
+      images: ['https://sg-test-11.slatic.net/p/4df032399f2bbaf6198df0d5077bae16.png'],
       sizeGuide: 'Panjang 200 cm | Bahu 80 cm | Suhu ekstrim -5°C',
       createdAt: '2026-02-10',
     ),
@@ -211,7 +216,7 @@ class SeedData {
       brand: 'Petzl', weight: 85,
       price: 425000, discountPrice: 365000,
       stock: 40, rating: 4.9, reviewCount: 234, soldCount: 620,
-      images: ['https://images.unsplash.com/photo-1566623876159-0a4c6e067ddb?w=600'],
+      images: ['https://m.petzl.com/sfc/servlet.shepherd/version/download/068w0000002nIE1AAM'],
       createdAt: '2026-04-15',
     ),
 
@@ -228,7 +233,7 @@ class SeedData {
       brand: 'Petzl', weight: 75,
       price: 1100000, discountPrice: 949000,
       stock: 35, rating: 4.8, reviewCount: 198, soldCount: 540,
-      images: ['https://images.unsplash.com/photo-1531297484001-80022131f5a1?w=600'],
+      images: ['https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQOjIv28GwfPeYDQ-4_FqErh8UqgCx3bjGKKo8F1jAaYgzLTinNowGUVgs&s=10'],
       createdAt: '2026-04-20',
     ),
     Product(
@@ -272,7 +277,7 @@ class SeedData {
       brand: 'Klymit', weight: 700,
       price: 1450000,
       stock: 12, rating: 4.7, reviewCount: 89, soldCount: 195,
-      images: ['https://images.unsplash.com/photo-1571902943202-507ec2618e8f?w=600'],
+      images: ['https://klymit.com/cdn/shop/files/Klymit_InsulatedStaticV-Red_Front_Deep_Sack_v2.jpg?v=1757437551&width=2000'],
       sizeGuide: '182x58 cm | Packing 22x10 cm | R-value 4.4',
       createdAt: '2026-05-05',
     ),
@@ -290,7 +295,7 @@ class SeedData {
       brand: 'MSR', weight: 83,
       price: 1450000,
       stock: 18, rating: 4.8, reviewCount: 156, soldCount: 340,
-      images: ['https://images.unsplash.com/photo-1597074866923-dc0589150358?w=600'],
+      images: ['https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRdC-8DNU10a629viBijJvA_BKVfEJ-7RrymGy-biXHWXPbDd3mi-TM_uQ&s=10'],
       createdAt: '2026-05-10',
     ),
     Product(
@@ -303,7 +308,7 @@ class SeedData {
       brand: 'Trangia', weight: 1100,
       price: 1850000, discountPrice: 1650000,
       stock: 10, rating: 4.7, reviewCount: 78, soldCount: 195,
-      images: ['https://images.unsplash.com/photo-1521302200778-33500795e128?w=600'],
+      images: ['https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSs-vDQqLM18XL7CVVMCcTQLIcIz-NpuCBPeQ1BuaSy-ORditXkLMoxACPr&s=10'],
       createdAt: '2026-05-15',
     ),
 
@@ -320,7 +325,7 @@ class SeedData {
       brand: 'Leki', weight: 250,
       price: 1350000, discountPrice: 1150000,
       stock: 20, rating: 4.7, reviewCount: 134, soldCount: 280,
-      images: ['https://images.unsplash.com/photo-1579247304232-a9bc207fdfab?w=600'],
+      images: ['https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQi72LDbLpkqnshixELFt0O5n5TjQKRAn1zH7UtGCDbrg&s=10'],
       createdAt: '2026-05-20',
     ),
     Product(

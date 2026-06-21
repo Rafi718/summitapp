@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import '../../../widgets/app_image.dart';
 import '../alpine_theme.dart';
 import '../../../models/product.dart';
 
@@ -45,10 +46,10 @@ class ProductCard extends StatelessWidget {
                 child: Stack(
                   children: [
                     Positioned.fill(
-                      child: Image.network(
-                        imageUrl, fit: BoxFit.cover,
-                        errorBuilder: (_, __, ___) => const Icon(Icons.image, color: AppColors.textMuted),
-                        loadingBuilder: (context, child, progress) => progress == null ? child : Container(color: AppColors.surfaceAlt),
+                      child: AppImage(
+                        src: imageUrl,
+                        fit: BoxFit.cover,
+                        placeholder: const Icon(Icons.image, color: AppColors.textMuted),
                       ),
                     ),
                     if (product.isOnSale)
@@ -119,10 +120,10 @@ class ProductCard extends StatelessWidget {
               child: Stack(
                 children: [
                   Positioned.fill(
-                    child: Image.network(
-                      imageUrl, fit: BoxFit.cover,
-                      errorBuilder: (_, __, ___) => const Icon(Icons.image, color: AppColors.textMuted),
-                      loadingBuilder: (context, child, progress) => progress == null ? child : Container(color: AppColors.surfaceAlt),
+                    child: AppImage(
+                      src: imageUrl,
+                      fit: BoxFit.cover,
+                      placeholder: const Icon(Icons.image, color: AppColors.textMuted),
                     ),
                   ),
                   if (product.isOnSale)

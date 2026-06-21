@@ -19,7 +19,18 @@ class DatabaseService {
       path,
       version: AppConstants.dbVersion,
       onCreate: _onCreate,
+      onUpgrade: _onUpgrade,
     );
+  }
+
+  static Future<void> _onUpgrade(Database db, int oldVersion, int newVersion) async {
+    if (oldVersion < 2) {
+      try {
+        await db.execute('ALTER TABLE categories ADD COLUMN image TEXT');
+      } catch (_) {
+        // Column may already exist; ignore.
+      }
+    }
   }
 
   static Future<void> _onCreate(Database db, int version) async {
@@ -42,6 +53,7 @@ class DatabaseService {
         name TEXT NOT NULL,
         parent_id INTEGER,
         icon TEXT NOT NULL,
+        image TEXT,
         FOREIGN KEY (parent_id) REFERENCES categories(id)
       )
     ''');

@@ -4,6 +4,7 @@ import 'package:intl/intl.dart';
 import '../../providers/cart_provider.dart';
 import '../../providers/product_provider.dart';
 import '../../providers/auth_provider.dart';
+import '../../widgets/app_image.dart';
 import '../home/alpine_theme.dart';
 import '../home/widgets/shared_widgets.dart';
 
@@ -46,8 +47,12 @@ class _CartPageState extends State<CartPage> {
   @override
   Widget build(BuildContext context) {
     final cart = context.watch<CartProvider>();
-    final products = context.read<ProductProvider>().products;
+    final products = context.watch<ProductProvider>().products;
     final auth = context.watch<AuthProvider>();
+
+    if (products.isNotEmpty) {
+      cart.setProductCache(products);
+    }
 
     if (!auth.isLoggedIn) {
       return Scaffold(
@@ -158,10 +163,10 @@ class _CartPageState extends State<CartPage> {
                 borderRadius: BorderRadius.circular(10),
               ),
               clipBehavior: Clip.antiAlias,
-              child: Image.network(
-                imageUrl, fit: BoxFit.cover,
-                errorBuilder: (_, __, ___) => const Icon(Icons.image, color: AppColors.textMuted, size: 24),
-                loadingBuilder: (context, child, p) => p == null ? child : Container(color: AppColors.surfaceAlt),
+              child: AppImage(
+                src: imageUrl,
+                fit: BoxFit.cover,
+                placeholder: const Icon(Icons.image, color: AppColors.textMuted, size: 24),
               ),
             ),
             const SizedBox(width: 12),

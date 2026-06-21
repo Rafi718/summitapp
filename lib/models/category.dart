@@ -3,12 +3,14 @@ class Category {
   final String name;
   final int? parentId;
   final String icon;
+  final String? image;
 
   Category({
     this.id,
     required this.name,
     this.parentId,
     required this.icon,
+    this.image,
   });
 
   Map<String, dynamic> toMap() {
@@ -17,6 +19,7 @@ class Category {
       'name': name,
       'parent_id': parentId,
       'icon': icon,
+      'image': image,
     };
   }
 
@@ -26,6 +29,7 @@ class Category {
       name: map['name'] as String? ?? '',
       parentId: map['parent_id'] as int?,
       icon: map['icon'] as String? ?? '',
+      image: map['image'] as String?,
     );
   }
 }

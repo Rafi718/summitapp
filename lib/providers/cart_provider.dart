@@ -14,6 +14,7 @@ class CartProvider extends ChangeNotifier {
   bool get isLoading => _isLoading;
   String? get appliedVoucherCode => _appliedVoucherCode;
   int get voucherDiscount => _voucherDiscount;
+  int? get userId => _userId == 0 ? null : _userId;
 
   int get itemCount => _items.fold(0, (sum, item) => sum + item.qty);
 

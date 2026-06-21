@@ -3,7 +3,7 @@ class AppConstants {
   static const String appTagline = 'Peralatan Pendakian Terpercaya';
 
   static const String dbName = 'summit_app.db';
-  static const int dbVersion = 1;
+  static const int dbVersion = 2;
 
   static const String placeholderImage = 'assets/images/products/placeholder.png';
 
