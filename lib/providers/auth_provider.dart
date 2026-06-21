@@ -9,13 +9,22 @@ class AuthProvider extends ChangeNotifier {
   bool get isLoggedIn => _authService.isLoggedIn;
   bool _isLoading = false;
   bool get isLoading => _isLoading;
+  String? _initError;
+  String? get initError => _initError;
 
   Future<void> init() async {
     _isLoading = true;
+    _initError = null;
     notifyListeners();
-    await _authService.init();
-    _isLoading = false;
-    notifyListeners();
+    try {
+      await _authService.init();
+    } catch (e) {
+      _initError = 'Gagal memuat data awal: $e';
+      if (kDebugMode) print(_initError);
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
   }
 
   Future<String?> register({

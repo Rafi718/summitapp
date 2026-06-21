@@ -70,14 +70,12 @@ class _SplashPageState extends State<SplashPage> with SingleTickerProviderStateM
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                Container(
-                  width: 72, height: 72,
-                  decoration: BoxDecoration(
-                    color: AppColors.textPrimary,
-                    borderRadius: BorderRadius.circular(20),
-                  ),
-                  child: const Center(
-                    child: Icon(Icons.terrain, size: 36, color: Colors.white),
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(20),
+                  child: Image.asset(
+                    'assets/images/logo/logo_app.png',
+                    width: 80, height: 80,
+                    fit: BoxFit.cover,
                   ),
                 ),
                 const SizedBox(height: 24),

@@ -243,6 +243,27 @@ class AdminProvider extends ChangeNotifier {
     final startStr = DateTime(start.year, start.month, start.day).toIso8601String();
     final endStr = DateTime(end.year, end.month, end.day, 23, 59, 59, 999).toIso8601String();
 
+    if (kDebugMode) {
+      debugPrint('=== Sales Report Debug ===');
+      debugPrint('Range: $startStr to $endStr');
+      
+      // Check if orders exist
+      final orderCheck = await db.rawQuery(
+        "SELECT COUNT(*) AS count FROM orders WHERE status != 'dibatalkan' AND created_at >= ? AND created_at <= ?",
+        [startStr, endStr],
+      );
+      debugPrint('Orders in range: ${orderCheck.first['count']}');
+      
+      // Check if order_items exist
+      final itemCheck = await db.rawQuery(
+        "SELECT COUNT(*) AS count FROM order_items oi "
+        "INNER JOIN orders o ON o.id = oi.order_id "
+        "WHERE o.status != 'dibatalkan' AND o.created_at >= ? AND o.created_at <= ?",
+        [startStr, endStr],
+      );
+      debugPrint('Order items in range: ${itemCheck.first['count']}');
+    }
+
     // Aggregate totals for the range.
     final aggRow = await db.rawQuery(
       "SELECT "

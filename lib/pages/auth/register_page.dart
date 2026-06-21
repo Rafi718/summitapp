@@ -28,10 +28,14 @@ class _RegisterPageState extends State<RegisterPage> {
     super.dispose();
   }
 
+  bool _isRegistering = false;
+
   Future<void> _register() async {
     if (!_formKey.currentState!.validate()) return;
+    setState(() => _isRegistering = true);
     final auth = context.read<AuthProvider>();
     final error = await auth.register(name: _nameController.text.trim(), email: _emailController.text.trim(), password: _passwordController.text);
+    setState(() => _isRegistering = false);
     if (!mounted) return;
     if (error != null) {
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(error), backgroundColor: AppColors.sale));
@@ -42,7 +46,6 @@ class _RegisterPageState extends State<RegisterPage> {
 
   @override
   Widget build(BuildContext context) {
-    final auth = context.watch<AuthProvider>();
     return Scaffold(
       backgroundColor: AppColors.background,
       body: SafeArea(
@@ -128,8 +131,8 @@ class _RegisterPageState extends State<RegisterPage> {
                   width: double.infinity,
                   height: 52,
                   child: ElevatedButton(
-                    onPressed: auth.isLoading ? null : _register,
-                    child: auth.isLoading
+                    onPressed: _isRegistering ? null : _register,
+                    child: _isRegistering
                         ? const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 1.5, color: Colors.white))
                         : Text('Daftar', style: AppText.button(size: 14)),
                   ),

@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sqflite/sqflite.dart';
 import '../models/user.dart';
@@ -21,7 +22,16 @@ class AuthService {
 
   Future<void> init() async {
     final db = await DatabaseService.database;
-    await _seedIfEmpty();
+    try {
+      await _seedIfEmpty();
+    } catch (e, st) {
+      // Print the error so it is visible in the IDE console during dev.
+      // This prevents a silent init hang that keeps the login button
+      // disabled forever because AuthProvider.isLoading stays true.
+      debugPrint('AuthService.init seeding failed: $e');
+      debugPrint(st.toString());
+      rethrow;
+    }
 
     // Restore session ONLY if a user ID was explicitly saved by login()
     // or register(). This prevents the old bug where the app auto-logged
@@ -69,79 +79,115 @@ class AuthService {
     // Skipped if any user already exists (registered users take priority).
     final userCount = Sqflite.firstIntValue(await db.rawQuery('SELECT COUNT(*) FROM users'));
     if (userCount == 0) {
-      final now = DateTime.now();
-      // 1. Admin
-      await db.insert('users', User(
-        name: 'Admin Summit',
-        email: 'admin@summit.com',
-        password: 'admin123',
-        isAdmin: true,
-        createdAt: now.toIso8601String(),
-      ).toMap());
-
-      // 2. Demo customers with addresses so checkout flow works.
-      final customer1Id = await db.insert('users', User(
-        name: 'Budi Santoso',
-        email: 'budi@email.com',
-        password: 'budi123',
-        phone: '081234567890',
-        createdAt: now.subtract(const Duration(days: 30)).toIso8601String(),
-      ).toMap());
-      await db.insert('addresses', Address(
-        userId: customer1Id,
-        label: 'Rumah',
-        recipientName: 'Budi Santoso',
-        recipientPhone: '081234567890',
-        fullAddress: 'Jl. Merapi No. 12, Sleman',
-        city: 'Sleman',
-        subdistrict: 'Ngaglik',
-        postalCode: '55581',
-        isPrimary: true,
-      ).toMap());
-
-      final customer2Id = await db.insert('users', User(
-        name: 'Siti Rahma',
-        email: 'siti@email.com',
-        password: 'siti123',
-        phone: '082198765432',
-        createdAt: now.subtract(const Duration(days: 20)).toIso8601String(),
-      ).toMap());
-      await db.insert('addresses', Address(
-        userId: customer2Id,
-        label: 'Rumah',
-        recipientName: 'Siti Rahma',
-        recipientPhone: '082198765432',
-        fullAddress: 'Jl. Bromo No. 8, Malang',
-        city: 'Malang',
-        subdistrict: 'Lowokwaru',
-        postalCode: '65141',
-        isPrimary: true,
-      ).toMap());
-
-      final customer3Id = await db.insert('users', User(
-        name: 'Andi Wijaya',
-        email: 'andi@email.com',
-        password: 'andi123',
-        phone: '085711223344',
-        createdAt: now.subtract(const Duration(days: 10)).toIso8601String(),
-      ).toMap());
-      await db.insert('addresses', Address(
-        userId: customer3Id,
-        label: 'Rumah',
-        recipientName: 'Andi Wijaya',
-        recipientPhone: '085711223344',
-        fullAddress: 'Jl. Semeru No. 21, Lumajang',
-        city: 'Lumajang',
-        subdistrict: 'Lumajang',
-        postalCode: '67312',
-        isPrimary: true,
-      ).toMap());
-
-      // 3. Seed demo orders so the dashboard & sales report have data
-      // immediately on a fresh install — no need to manually checkout
-      // before demoing the admin panel.
-      await _seedDemoOrders(db, customer1Id, customer2Id, customer3Id);
+      await _seedAdminIfMissing(db);
     }
+
+    // Ensure 3 demo customers exist (idempotent — skips emails that
+    // already exist so it's safe to call on both fresh and existing DBs).
+    final customerIds = await _seedDemoCustomersIfMissing(db);
+
+    // Seed demo orders independently from users so a fresh install AND
+    // an existing install (with users but no orders) both get demo data
+    // for the dashboard & sales report.
+    final orderCount = Sqflite.firstIntValue(await db.rawQuery('SELECT COUNT(*) FROM orders'));
+    if (orderCount == 0 && customerIds.length >= 3) {
+      await _seedDemoOrders(db, customerIds[0], customerIds[1], customerIds[2]);
+    }
+  }
+
+  /// Inserts the admin account only if no admin user exists yet.
+  /// Idempotent — safe to call on both fresh and existing DBs.
+  Future<void> _seedAdminIfMissing(Database db) async {
+    final adminCount = Sqflite.firstIntValue(
+      await db.rawQuery("SELECT COUNT(*) FROM users WHERE is_admin = 1"),
+    );
+    if (adminCount != null && adminCount > 0) return;
+
+    final now = DateTime.now();
+    await db.insert('users', User(
+      name: 'Admin Summit',
+      email: 'admin@summit.com',
+      password: 'admin123',
+      isAdmin: true,
+      createdAt: now.toIso8601String(),
+    ).toMap());
+  }
+
+  /// Ensures the 3 demo customers (Budi, Siti, Andi) with addresses
+  /// exist. Returns their user IDs in order. Idempotent — skips any
+  /// customer whose email already exists so it never hits the UNIQUE
+  /// constraint. Safe to call on both fresh and existing DBs.
+  Future<List<int>> _seedDemoCustomersIfMissing(Database db) async {
+    final now = DateTime.now();
+    final specs = <Map<String, dynamic>>[
+      {
+        'name': 'Budi Santoso',
+        'email': 'budi@email.com',
+        'password': 'budi123',
+        'phone': '081234567890',
+        'daysAgo': 30,
+        'address': 'Jl. Merapi No. 12, Sleman',
+        'city': 'Sleman',
+        'subdistrict': 'Ngaglik',
+        'postalCode': '55581',
+      },
+      {
+        'name': 'Siti Rahma',
+        'email': 'siti@email.com',
+        'password': 'siti123',
+        'phone': '082198765432',
+        'daysAgo': 20,
+        'address': 'Jl. Bromo No. 8, Malang',
+        'city': 'Malang',
+        'subdistrict': 'Lowokwaru',
+        'postalCode': '65141',
+      },
+      {
+        'name': 'Andi Wijaya',
+        'email': 'andi@email.com',
+        'password': 'andi123',
+        'phone': '085711223344',
+        'daysAgo': 10,
+        'address': 'Jl. Semeru No. 21, Lumajang',
+        'city': 'Lumajang',
+        'subdistrict': 'Lumajang',
+        'postalCode': '67312',
+      },
+    ];
+
+    final ids = <int>[];
+    for (final s in specs) {
+      final email = s['email'] as String;
+      // Check if this customer already exists.
+      final existing = await db.query('users', where: 'email = ?', whereArgs: [email], limit: 1);
+      int userId;
+      if (existing.isNotEmpty) {
+        userId = existing.first['id'] as int;
+      } else {
+        userId = await db.insert('users', User(
+          name: s['name'] as String,
+          email: email,
+          password: s['password'] as String,
+          phone: s['phone'] as String,
+          createdAt: now.subtract(Duration(days: s['daysAgo'] as int)).toIso8601String(),
+        ).toMap());
+        // Only insert address for newly created customers (existing ones
+        // presumably already have addresses).
+        await db.insert('addresses', Address(
+          userId: userId,
+          label: 'Rumah',
+          recipientName: s['name'] as String,
+          recipientPhone: s['phone'] as String,
+          fullAddress: s['address'] as String,
+          city: s['city'] as String,
+          subdistrict: s['subdistrict'] as String,
+          postalCode: s['postalCode'] as String,
+          isPrimary: true,
+        ).toMap());
+      }
+      ids.add(userId);
+    }
+    return ids;
   }
 
   /// Seeds 8 demo orders spread across the last 7 days with various
@@ -272,64 +318,15 @@ class AuthService {
     // these are idempotent seed inserts with fixed ids.
     await _seedAll();
     // Re-seed users (admin + demo customers) and demo orders.
-    await _seedDemoUsersAndOrders(db);
+    await _seedAdminIfMissing(db);
+    final customerIds = await _seedDemoCustomersIfMissing(db);
+    await _seedDemoOrders(db, customerIds[0], customerIds[1], customerIds[2]);
 
     // Clear the saved session so the user is sent to the login page
     // after reset (their user ID no longer exists).
     final prefs = await SharedPreferences.getInstance();
     await prefs.remove(_kSessionUserId);
     _currentUser = null;
-  }
-
-  /// Re-seeds admin + 3 demo customers (with addresses) and 8 demo
-  /// orders. Used by resetSeed() to restore a complete demo dataset.
-  Future<void> _seedDemoUsersAndOrders(Database db) async {
-    final now = DateTime.now();
-    await db.insert('users', User(
-      name: 'Admin Summit',
-      email: 'admin@summit.com',
-      password: 'admin123',
-      isAdmin: true,
-      createdAt: now.toIso8601String(),
-    ).toMap());
-
-    final c1 = await db.insert('users', User(
-      name: 'Budi Santoso',
-      email: 'budi@email.com',
-      password: 'budi123',
-      phone: '081234567890',
-      createdAt: now.subtract(const Duration(days: 30)).toIso8601String(),
-    ).toMap());
-    await db.insert('addresses', Address(
-      userId: c1, label: 'Rumah', recipientName: 'Budi Santoso', recipientPhone: '081234567890',
-      fullAddress: 'Jl. Merapi No. 12, Sleman', city: 'Sleman', subdistrict: 'Ngaglik', postalCode: '55581', isPrimary: true,
-    ).toMap());
-
-    final c2 = await db.insert('users', User(
-      name: 'Siti Rahma',
-      email: 'siti@email.com',
-      password: 'siti123',
-      phone: '082198765432',
-      createdAt: now.subtract(const Duration(days: 20)).toIso8601String(),
-    ).toMap());
-    await db.insert('addresses', Address(
-      userId: c2, label: 'Rumah', recipientName: 'Siti Rahma', recipientPhone: '082198765432',
-      fullAddress: 'Jl. Bromo No. 8, Malang', city: 'Malang', subdistrict: 'Lowokwaru', postalCode: '65141', isPrimary: true,
-    ).toMap());
-
-    final c3 = await db.insert('users', User(
-      name: 'Andi Wijaya',
-      email: 'andi@email.com',
-      password: 'andi123',
-      phone: '085711223344',
-      createdAt: now.subtract(const Duration(days: 10)).toIso8601String(),
-    ).toMap());
-    await db.insert('addresses', Address(
-      userId: c3, label: 'Rumah', recipientName: 'Andi Wijaya', recipientPhone: '085711223344',
-      fullAddress: 'Jl. Semeru No. 21, Lumajang', city: 'Lumajang', subdistrict: 'Lumajang', postalCode: '67312', isPrimary: true,
-    ).toMap());
-
-    await _seedDemoOrders(db, c1, c2, c3);
   }
 
   Future<String?> register({

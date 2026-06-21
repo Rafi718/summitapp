@@ -61,49 +61,41 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
                           label: 'Profit Hari Ini',
                           value: currency.format(metrics.todayProfit),
                           icon: Icons.today,
-                          color: AppColors.success,
                         ),
                         _MetricCard(
                           label: 'Revenue Hari Ini',
                           value: currency.format(metrics.todayRevenue),
                           icon: Icons.payments_outlined,
-                          color: AppColors.brand,
                         ),
                         _MetricCard(
                           label: 'Profit Bulan Ini',
                           value: currency.format(metrics.monthlyProfit),
                           icon: Icons.trending_up,
-                          color: AppColors.success,
                         ),
                         _MetricCard(
                           label: 'Revenue Bulan Ini',
                           value: currency.format(metrics.monthlyRevenue),
                           icon: Icons.calendar_today,
-                          color: AppColors.brand,
                         ),
                         _MetricCard(
                           label: 'Total Profit',
                           value: currency.format(metrics.totalProfit),
                           icon: Icons.account_balance_wallet_outlined,
-                          color: AppColors.success,
                         ),
                         _MetricCard(
                           label: 'Total Revenue',
                           value: currency.format(metrics.totalRevenue),
                           icon: Icons.payments_outlined,
-                          color: AppColors.brand,
                         ),
                         _MetricCard(
                           label: 'Total Order',
                           value: '${metrics.totalOrders}',
                           icon: Icons.receipt_long_outlined,
-                          color: AppColors.info,
                         ),
                         _MetricCard(
                           label: 'Order Aktif',
                           value: '${metrics.activeOrders}',
                           icon: Icons.pending_actions,
-                          color: AppColors.warning,
                         ),
                       ],
                     ),
@@ -112,7 +104,6 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
                       label: 'Produk Terjual (lifetime)',
                       value: '${metrics.productsSold} item',
                       icon: Icons.shopping_bag_outlined,
-                      color: AppColors.textPrimary,
                       compact: true,
                     ),
                     const SizedBox(height: 24),
@@ -373,19 +364,18 @@ class _MetricCard extends StatelessWidget {
   final String label;
   final String value;
   final IconData icon;
-  final Color color;
   final bool compact;
 
   const _MetricCard({
     required this.label,
     required this.value,
     required this.icon,
-    required this.color,
     this.compact = false,
   });
 
   @override
   Widget build(BuildContext context) {
+    const iconColor = AppColors.textSecondary;
     return Container(
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
@@ -398,8 +388,8 @@ class _MetricCard extends StatelessWidget {
           Container(
             width: 44,
             height: 44,
-            decoration: BoxDecoration(color: color.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(12)),
-            child: Icon(icon, color: color, size: 22),
+            decoration: BoxDecoration(color: AppColors.surfaceAlt, borderRadius: BorderRadius.circular(12)),
+            child: Icon(icon, color: iconColor, size: 22),
           ),
           const SizedBox(width: 12),
           Expanded(
@@ -460,8 +450,8 @@ class _AdminCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final accent = destructive ? AppColors.sale : AppColors.brand;
-    final iconBg = destructive ? AppColors.sale.withValues(alpha: 0.08) : AppColors.brand.withValues(alpha: 0.08);
+    final accent = destructive ? AppColors.sale : AppColors.textSecondary;
+    final iconBg = destructive ? AppColors.sale.withValues(alpha: 0.08) : AppColors.surfaceAlt;
     return GestureDetector(
       onTap: onTap,
       child: Container(

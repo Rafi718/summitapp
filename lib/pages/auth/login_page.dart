@@ -23,10 +23,14 @@ class _LoginPageState extends State<LoginPage> {
     super.dispose();
   }
 
+  bool _isLoggingIn = false;
+
   Future<void> _login() async {
     if (!_formKey.currentState!.validate()) return;
+    setState(() => _isLoggingIn = true);
     final auth = context.read<AuthProvider>();
     final error = await auth.login(email: _emailController.text.trim(), password: _passwordController.text);
+    setState(() => _isLoggingIn = false);
     if (!mounted) return;
     if (error != null) {
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(error), backgroundColor: AppColors.sale));
@@ -37,7 +41,6 @@ class _LoginPageState extends State<LoginPage> {
 
   @override
   Widget build(BuildContext context) {
-    final auth = context.watch<AuthProvider>();
     return Scaffold(
       backgroundColor: AppColors.background,
       body: SafeArea(
@@ -52,14 +55,15 @@ class _LoginPageState extends State<LoginPage> {
                 Center(
                   child: Column(
                     children: [
-                      Container(
-                        width: 64, height: 64,
-                        decoration: BoxDecoration(color: AppColors.brand, borderRadius: BorderRadius.circular(20)),
-                        child: const Center(child: Icon(Icons.terrain, color: Colors.white, size: 32)),
+                      ClipRRect(
+                        borderRadius: BorderRadius.circular(24),
+                        child: Image.asset(
+                          'assets/images/logo/logo_app.png',
+                          width: 140, height: 140,
+                          fit: BoxFit.cover,
+                        ),
                       ),
-                      const SizedBox(height: 16),
-                      Text('Summit', style: AppText.display(size: 28, weight: FontWeight.w700)),
-                      const SizedBox(height: 4),
+                      const SizedBox(height: 12),
                       Text('Peralatan Pendakian', style: AppText.caption(size: 13, color: AppColors.textMuted)),
                     ],
                   ),
@@ -98,8 +102,8 @@ class _LoginPageState extends State<LoginPage> {
                   width: double.infinity,
                   height: 52,
                   child: ElevatedButton(
-                    onPressed: auth.isLoading ? null : _login,
-                    child: auth.isLoading
+                    onPressed: _isLoggingIn ? null : _login,
+                    child: _isLoggingIn
                         ? const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 1.5, color: Colors.white))
                         : Text('Masuk', style: AppText.button(size: 14)),
                   ),
