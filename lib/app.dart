@@ -20,6 +20,11 @@ import '../pages/profile/edit_profile_page.dart';
 import '../pages/profile/address_list_page.dart';
 import '../pages/profile/address_form_page.dart';
 import '../pages/wishlist/wishlist_page.dart';
+import '../pages/admin/admin_dashboard_page.dart';
+import '../pages/admin/admin_product_list_page.dart';
+import '../pages/admin/admin_product_form_page.dart';
+import '../pages/admin/admin_category_list_page.dart';
+import '../pages/admin/admin_category_form_page.dart';
 
 class SummitApp extends StatelessWidget {
   const SummitApp({super.key});
@@ -41,35 +46,45 @@ class SummitApp extends StatelessWidget {
         onGenerateRoute: (settings) {
           switch (settings.name) {
             case AppRoutes.splash:
-              return MaterialPageRoute(builder: (_) => const SplashPage());
+              return MaterialPageRoute(settings: settings, builder: (_) => const SplashPage());
             case AppRoutes.onboarding:
-              return MaterialPageRoute(builder: (_) => const OnboardingPage());
+              return MaterialPageRoute(settings: settings, builder: (_) => const OnboardingPage());
             case AppRoutes.login:
-              return MaterialPageRoute(builder: (_) => const LoginPage());
+              return MaterialPageRoute(settings: settings, builder: (_) => const LoginPage());
             case AppRoutes.register:
-              return MaterialPageRoute(builder: (_) => const RegisterPage());
+              return MaterialPageRoute(settings: settings, builder: (_) => const RegisterPage());
             case AppRoutes.main:
-              return MaterialPageRoute(builder: (_) => const MainShell());
+              return MaterialPageRoute(settings: settings, builder: (_) => const MainShell());
             case AppRoutes.search:
-              return MaterialPageRoute(builder: (_) => const SearchPage());
+              return MaterialPageRoute(settings: settings, builder: (_) => const SearchPage());
             case AppRoutes.productList:
-              return MaterialPageRoute(builder: (_) => const ProductListPage());
+              return MaterialPageRoute(settings: settings, builder: (_) => const ProductListPage());
             case AppRoutes.productDetail:
-              return MaterialPageRoute(builder: (_) => const ProductDetailPage());
+              return MaterialPageRoute(settings: settings, builder: (_) => const ProductDetailPage());
             case AppRoutes.checkout:
-              return MaterialPageRoute(builder: (_) => const CheckoutPage());
+              return MaterialPageRoute(settings: settings, builder: (_) => const CheckoutPage());
             case AppRoutes.orderDetail:
-              return MaterialPageRoute(builder: (_) => const OrderDetailPage());
+              return MaterialPageRoute(settings: settings, builder: (_) => const OrderDetailPage());
             case AppRoutes.editProfile:
-              return MaterialPageRoute(builder: (_) => const EditProfilePage());
+              return MaterialPageRoute(settings: settings, builder: (_) => const EditProfilePage());
             case AppRoutes.addressList:
-              return MaterialPageRoute(builder: (_) => const AddressListPage());
+              return MaterialPageRoute(settings: settings, builder: (_) => const AddressListPage());
             case AppRoutes.addressForm:
-              return MaterialPageRoute(builder: (_) => const AddressFormPage());
+              return MaterialPageRoute(settings: settings, builder: (_) => const AddressFormPage());
             case AppRoutes.wishlist:
-              return MaterialPageRoute(builder: (_) => const WishlistPage());
+              return MaterialPageRoute(settings: settings, builder: (_) => const WishlistPage());
+            case AppRoutes.adminDashboard:
+              return MaterialPageRoute(settings: settings, builder: (_) => const AdminDashboardPage());
+            case AppRoutes.adminProducts:
+              return MaterialPageRoute(settings: settings, builder: (_) => const AdminProductListPage());
+            case AppRoutes.adminProductForm:
+              return MaterialPageRoute(settings: settings, builder: (_) => const AdminProductFormPage());
+            case AppRoutes.adminCategories:
+              return MaterialPageRoute(settings: settings, builder: (_) => const AdminCategoryListPage());
+            case AppRoutes.adminCategoryForm:
+              return MaterialPageRoute(settings: settings, builder: (_) => const AdminCategoryFormPage());
             default:
-              return MaterialPageRoute(builder: (_) => const MainShell());
+              return MaterialPageRoute(settings: settings, builder: (_) => const MainShell());
           }
         },
       ),

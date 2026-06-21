@@ -66,4 +66,9 @@ class User {
       createdAt: createdAt ?? this.createdAt,
     );
   }
+
+  /// Admin gating: any email containing "admin" is treated as an admin
+  /// account. Keep this loose for the college-demo seed; tighten in prod
+  /// by replacing with an `is_admin` column on the users table.
+  bool get isAdmin => email.toLowerCase().contains('admin');
 }

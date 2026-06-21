@@ -18,4 +18,11 @@ class AppRoutes {
   static const String addressList = '/address-list';
   static const String addressForm = '/address-form';
   static const String wishlist = '/wishlist';
+
+  // Admin
+  static const String adminDashboard = '/admin';
+  static const String adminProducts = '/admin/products';
+  static const String adminProductForm = '/admin/product-form';
+  static const String adminCategories = '/admin/categories';
+  static const String adminCategoryForm = '/admin/category-form';
 }

@@ -36,6 +36,14 @@ class ProfilePage extends StatelessWidget {
 
     final user = auth.currentUser!;
 
+    final accountMenu = <Widget>[
+      _menuItem(context, icon: Icons.person_outline, title: 'Edit Profil', onTap: () => Navigator.pushNamed(context, '/edit-profile')),
+      _menuItem(context, icon: Icons.location_on_outlined, title: 'Alamat Saya', onTap: () => Navigator.pushNamed(context, '/address-list')),
+      _menuItem(context, icon: Icons.favorite_border, title: 'Wishlist', onTap: () => Navigator.pushNamed(context, '/wishlist')),
+      if (user.isAdmin)
+        _menuItem(context, icon: Icons.admin_panel_settings_outlined, title: 'Admin Panel', onTap: () => Navigator.pushNamed(context, '/admin')),
+    ];
+
     return Scaffold(
       backgroundColor: AppColors.background,
       body: SafeArea(
@@ -47,11 +55,7 @@ class ProfilePage extends StatelessWidget {
             const SizedBox(height: 8),
             _buildProfileHeader(user),
             const SizedBox(height: 20),
-            _buildMenuSection(context, [
-              _menuItem(context, icon: Icons.person_outline, title: 'Edit Profil', onTap: () => Navigator.pushNamed(context, '/edit-profile')),
-              _menuItem(context, icon: Icons.location_on_outlined, title: 'Alamat Saya', onTap: () => Navigator.pushNamed(context, '/address-list')),
-              _menuItem(context, icon: Icons.favorite_border, title: 'Wishlist', onTap: () => Navigator.pushNamed(context, '/wishlist')),
-            ]),
+            _buildMenuSection(context, accountMenu),
             const SizedBox(height: 12),
             _buildMenuSection(context, [
               _menuItem(context, icon: Icons.help_outline, title: 'FAQ', onTap: () {}),
@@ -126,12 +130,20 @@ class ProfilePage extends StatelessWidget {
   }
 
   Widget _menuItem(BuildContext context, {required IconData icon, required String title, required VoidCallback onTap}) {
-    return ListTile(
-      leading: Icon(icon, color: AppColors.textPrimary, size: 20),
-      title: Text(title, style: AppText.body(size: 14, weight: FontWeight.w500)),
-      trailing: const Icon(Icons.chevron_right, size: 18, color: AppColors.textMuted),
-      onTap: onTap,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+    // Wrap in Material(Colors.transparent) so the ListTile's ink splash
+    // and background paint on a Material ancestor — otherwise the
+    // surrounding Container in _buildMenuSection (which has its own
+    // background color) hides those effects and Flutter throws an
+    // assertion in debug mode.
+    return Material(
+      color: Colors.transparent,
+      child: ListTile(
+        leading: Icon(icon, color: AppColors.textPrimary, size: 20),
+        title: Text(title, style: AppText.body(size: 14, weight: FontWeight.w500)),
+        trailing: const Icon(Icons.chevron_right, size: 18, color: AppColors.textMuted),
+        onTap: onTap,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+      ),
     );
   }
 

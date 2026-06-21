@@ -74,10 +74,22 @@ class ProductCard extends StatelessWidget {
             const SizedBox(height: 4),
             Row(
               children: [
-                Text('Rp ${formatter.format(product.effectivePrice)}', style: AppText.body(size: 13, weight: FontWeight.w700, color: AppColors.textPrimary)),
+                Flexible(
+                  child: Text(
+                    'Rp ${formatter.format(product.effectivePrice)}',
+                    style: AppText.body(size: 13, weight: FontWeight.w700, color: AppColors.textPrimary),
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
                 if (product.isOnSale) ...[
                   const SizedBox(width: 6),
-                  Text('Rp ${formatter.format(product.price)}', style: AppText.caption(size: 11, color: AppColors.textMuted).copyWith(decoration: TextDecoration.lineThrough)),
+                  Flexible(
+                    child: Text(
+                      'Rp ${formatter.format(product.price)}',
+                      style: AppText.caption(size: 11, color: AppColors.textMuted).copyWith(decoration: TextDecoration.lineThrough),
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
                 ],
               ],
             ),
@@ -131,17 +143,27 @@ class ProductCard extends StatelessWidget {
             style: AppText.body(size: 13, weight: FontWeight.w500, color: AppColors.textPrimary, height: 1.3),
           ),
           const SizedBox(height: 4),
-          Row(
-            children: [
-              Text('Rp ${formatter.format(product.effectivePrice)}', style: AppText.body(size: 13, weight: FontWeight.w700, color: AppColors.textPrimary)),
-              if (product.isOnSale) ...[
-                const SizedBox(width: 6),
-                Expanded(
-                  child: Text('Rp ${formatter.format(product.price)}', style: AppText.caption(size: 10, color: AppColors.textMuted).copyWith(decoration: TextDecoration.lineThrough), overflow: TextOverflow.ellipsis),
+            Row(
+              children: [
+                Flexible(
+                  child: Text(
+                    'Rp ${formatter.format(product.effectivePrice)}',
+                    style: AppText.body(size: 13, weight: FontWeight.w700, color: AppColors.textPrimary),
+                    overflow: TextOverflow.ellipsis,
+                  ),
                 ),
+                if (product.isOnSale) ...[
+                  const SizedBox(width: 6),
+                  Expanded(
+                    child: Text(
+                      'Rp ${formatter.format(product.price)}',
+                      style: AppText.caption(size: 10, color: AppColors.textMuted).copyWith(decoration: TextDecoration.lineThrough),
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                ],
               ],
-            ],
-          ),
+            ),
         ],
       ),
     );

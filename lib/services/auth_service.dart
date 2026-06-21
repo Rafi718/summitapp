@@ -42,6 +42,61 @@ class AuthService {
         await db.insert('vouchers', v.toMap());
       }
     }
+
+    // Seed a default admin user on a fresh install so the demo flow
+    // works without forcing the user to register a special account.
+    // Skipped if any user already exists (registered users take priority).
+    final userCount = Sqflite.firstIntValue(await db.rawQuery('SELECT COUNT(*) FROM users'));
+    if (userCount == 0) {
+      final admin = User(
+        name: 'Admin Summit',
+        email: 'admin@summit.com',
+        password: 'admin123',
+        createdAt: DateTime.now().toIso8601String(),
+      );
+      await db.insert('users', admin.toMap());
+    }
+  }
+
+  /// Inserts the current SeedData into the DB unconditionally. Caller is
+  /// responsible for clearing the target tables first.
+  Future<void> _seedAll() async {
+    final db = await DatabaseService.database;
+    for (final cat in SeedData.categories) {
+      await db.insert('categories', cat.toMap());
+    }
+    for (final prod in SeedData.products) {
+      await db.insert('products', prod.toMap());
+    }
+    for (final v in SeedData.vouchers) {
+      await db.insert('vouchers', v.toMap());
+    }
+  }
+
+  /// Destructive: wipes products, categories, vouchers, and all data
+  /// that depends on them (cart_items, wishlist, order_items, orders,
+  /// reviews), then re-runs the seed from `SeedData`. Users (accounts)
+  /// are preserved. Wrapped in a single transaction for atomicity.
+  ///
+  /// Called from the admin dashboard "Reset Data ke Default" tile.
+  Future<void> resetSeed() async {
+    final db = await DatabaseService.database;
+    await db.transaction((txn) async {
+      // Delete in dependency order. FK isn't enforced by default in
+      // this DB, but we still delete dependents first for clarity.
+      await txn.delete('order_items');
+      await txn.delete('orders');
+      await txn.delete('cart_items');
+      await txn.delete('wishlist');
+      await txn.delete('reviews');
+      await txn.delete('products');
+      await txn.delete('categories');
+      await txn.delete('vouchers');
+    });
+    // Re-insert seed. Done outside the transaction because sqflite's
+    // transaction doesn't allow nested insert calls cleanly here, and
+    // these are idempotent seed inserts with fixed ids.
+    await _seedAll();
   }
 
   Future<String?> register({

@@ -18,14 +18,73 @@ class ProductDetailPage extends StatefulWidget {
 
 class _ProductDetailPageState extends State<ProductDetailPage> {
   int _qty = 1;
+  Product? _product;
+  bool _isLoading = true;
+  int? _productId;
+
+  @override
+  void initState() {
+    super.initState();
+    // Defer to the next frame: ModalRoute.of(context) (which we use
+    // inside _loadProduct) calls dependOnInheritedWidgetOfExactType,
+    // which is illegal in initState. addPostFrameCallback runs the
+    // callback after the first build, when the inherited widget tree
+    // is fully wired up.
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) _loadProduct();
+    });
+  }
+
+  Future<void> _loadProduct() async {
+    try {
+      final args = ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>?;
+      final id = args?['productId'] as int?;
+      _productId = id;
+      debugPrint('[ProductDetail] args=$args, id=$id');
+      if (id == null) return; // _product stays null → "not found" view
+
+      final provider = context.read<ProductProvider>();
+      // Fast path: in-memory cache hit. Should be the common case since
+      // the home/catalog pages only render ProductCard after products
+      // are loaded into the provider.
+      Product? result = provider.getProductById(id);
+      debugPrint('[ProductDetail] cache lookup for id=$id → '
+          '${result != null ? "FOUND (${result.name})" : "MISS"}');
+
+      // Fallback: direct DB lookup. Handles the case where the detail
+      // page is opened before loadProducts() finished, or the provider
+      // cache is stale. Bounded by a 5s timeout so a wedged DB never
+      // leaves the spinner up indefinitely.
+      result ??= await provider
+          .fetchProductById(id)
+          .timeout(const Duration(seconds: 5), onTimeout: () => null);
+      debugPrint('[ProductDetail] DB lookup for id=$id → '
+          '${result != null ? "FOUND (${result.name})" : "MISS"}');
+
+      if (!mounted) return;
+      setState(() => _product = result);
+    } catch (e, st) {
+      // Surface the cause to the console so the next bug is easier to
+      // diagnose. We still fall through to the finally block below,
+      // which guarantees the spinner is dismissed.
+      debugPrint('[ProductDetail] _loadProduct error: $e\n$st');
+    } finally {
+      if (mounted) setState(() => _isLoading = false);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
-    final args = ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>?;
-    final productId = args?['productId'] as int?;
-    final productProvider = context.read<ProductProvider>();
-    final product = productId != null ? productProvider.getProductById(productId) : null;
+    if (_isLoading) {
+      return Scaffold(
+        backgroundColor: AppColors.background,
+        body: const SafeArea(
+          child: Center(child: CircularProgressIndicator()),
+        ),
+      );
+    }
 
+    final product = _product;
     if (product == null) {
       return Scaffold(
         backgroundColor: AppColors.background,
@@ -47,7 +106,8 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
       );
     }
 
-    final relatedProducts = productProvider.getRelatedProducts(productId!, product.categoryId);
+    final productProvider = context.read<ProductProvider>();
+    final relatedProducts = productProvider.getRelatedProducts(_productId!, product.categoryId);
     final formatter = NumberFormat('#,###', 'id_ID');
 
     return Scaffold(
@@ -155,7 +215,13 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
         Text('Rp ${formatter.format(product.effectivePrice)}', style: AppText.display(size: 22, weight: FontWeight.w700)),
         if (product.isOnSale) ...[
           const SizedBox(width: 8),
-          Text('Rp ${formatter.format(product.price)}', style: AppText.body(size: 13, color: AppColors.textMuted).copyWith(decoration: TextDecoration.lineThrough)),
+          Flexible(
+            child: Text(
+              'Rp ${formatter.format(product.price)}',
+              style: AppText.body(size: 13, color: AppColors.textMuted).copyWith(decoration: TextDecoration.lineThrough),
+              overflow: TextOverflow.ellipsis,
+            ),
+          ),
         ],
       ],
     );
