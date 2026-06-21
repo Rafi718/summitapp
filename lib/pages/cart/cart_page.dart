@@ -4,9 +4,20 @@ import 'package:intl/intl.dart';
 import '../../providers/cart_provider.dart';
 import '../../providers/product_provider.dart';
 import '../../providers/auth_provider.dart';
+import '../../models/cart_item.dart';
+import '../../models/product.dart';
 import '../../widgets/app_image.dart';
 import '../home/alpine_theme.dart';
 import '../home/widgets/shared_widgets.dart';
+
+extension _FirstWhereOrNull<T> on Iterable<T> {
+  T? firstWhereOrNull(bool Function(T) test) {
+    for (final element in this) {
+      if (test(element)) return element;
+    }
+    return null;
+  }
+}
 
 class CartPage extends StatefulWidget {
   const CartPage({super.key});
@@ -132,11 +143,8 @@ class _CartPageState extends State<CartPage> {
     );
   }
 
-  Widget _buildCartItem(dynamic item, List<dynamic> products, CartProvider cart) {
-    final product = products.firstWhere(
-      (p) => p.id == item.productId,
-      orElse: () => null,
-    );
+  Widget _buildCartItem(CartItem item, List<Product> products, CartProvider cart) {
+    final product = products.firstWhereOrNull((p) => p.id == item.productId);
     if (product == null) return const SizedBox.shrink();
 
     final imageUrl = product.images.isNotEmpty ? product.images[0] : '';
@@ -150,7 +158,7 @@ class _CartPageState extends State<CartPage> {
         decoration: BoxDecoration(color: AppColors.sale, borderRadius: BorderRadius.circular(14)),
         child: const Icon(Icons.delete_outline, color: Colors.white),
       ),
-      onDismissed: (_) => cart.removeItem(item.id),
+      onDismissed: (_) => cart.removeItem(item.id!),
       child: DarkCard(
         color: AppColors.background,
         padding: const EdgeInsets.all(12),

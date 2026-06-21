@@ -6,9 +6,19 @@ import '../../providers/cart_provider.dart';
 import '../../providers/product_provider.dart';
 import '../../providers/order_provider.dart';
 import '../../models/address.dart';
+import '../../models/product.dart';
 import '../home/alpine_theme.dart';
 import '../home/widgets/shared_widgets.dart';
 import '../../config/constants.dart';
+
+extension _FirstWhereOrNull<T> on Iterable<T> {
+  T? firstWhereOrNull(bool Function(T) test) {
+    for (final element in this) {
+      if (test(element)) return element;
+    }
+    return null;
+  }
+}
 
 class CheckoutPage extends StatefulWidget {
   const CheckoutPage({super.key});
@@ -304,16 +314,13 @@ class _CheckoutPageState extends State<CheckoutPage> {
     );
   }
 
-  Widget _buildOrderItems(cart, List products) {
+  Widget _buildOrderItems(CartProvider cart, List<Product> products) {
     return DarkCard(
       color: AppColors.background,
       padding: const EdgeInsets.all(16),
       child: Column(
         children: cart.items.map<Widget>((item) {
-          final product = products.firstWhere(
-            (p) => p.id == item.productId,
-            orElse: () => null,
-          );
+          final product = products.firstWhereOrNull((p) => p.id == item.productId);
           if (product == null) return const SizedBox.shrink();
           return Padding(
             padding: const EdgeInsets.only(bottom: 8),
