@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
 import '../../providers/admin_provider.dart';
 import '../../providers/auth_provider.dart';
+import '../../providers/product_provider.dart';
 import '../../models/order.dart';
 import '../../models/order_item.dart';
 import '../../models/address.dart';
@@ -112,6 +113,8 @@ class _AdminOrderDetailPageState extends State<AdminOrderDetailPage> {
     );
     if (confirmed == true && mounted) {
       await context.read<AdminProvider>().cancelOrder(_order!.id!);
+      // Refresh product cache so restored stock is visible in admin product list.
+      if (mounted) await context.read<ProductProvider>().loadProducts();
       await _load();
     }
   }

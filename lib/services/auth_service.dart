@@ -1,8 +1,17 @@
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sqflite/sqflite.dart';
 import '../models/user.dart';
 import '../models/address.dart';
+import '../models/order.dart';
+import '../models/order_item.dart';
 import '../services/database_service.dart';
 import '../services/seed_data.dart';
+
+/// SharedPreferences key for persisting the logged-in user's ID across
+/// app restarts. Without this, the old code auto-logged-in as
+/// `users.first` on every launch — even after logout — which broke
+/// the demo flow.
+const _kSessionUserId = 'session_user_id';
 
 class AuthService {
   User? _currentUser;
@@ -12,11 +21,23 @@ class AuthService {
 
   Future<void> init() async {
     final db = await DatabaseService.database;
-    final users = await db.query('users', limit: 1);
-    if (users.isNotEmpty) {
-      _currentUser = User.fromMap(users.first);
-    }
     await _seedIfEmpty();
+
+    // Restore session ONLY if a user ID was explicitly saved by login()
+    // or register(). This prevents the old bug where the app auto-logged
+    // in as `users.first` (the seeded admin) on every launch.
+    final prefs = await SharedPreferences.getInstance();
+    final savedUserId = prefs.getInt(_kSessionUserId);
+    if (savedUserId != null) {
+      final results = await db.query('users', where: 'id = ?', whereArgs: [savedUserId], limit: 1);
+      if (results.isNotEmpty) {
+        _currentUser = User.fromMap(results.first);
+      } else {
+        // Saved user no longer exists (e.g. after resetSeed cleared users).
+        // Clear the stale session so the user is sent to the login page.
+        await prefs.remove(_kSessionUserId);
+      }
+    }
   }
 
   Future<void> _seedIfEmpty() async {
@@ -48,15 +69,161 @@ class AuthService {
     // Skipped if any user already exists (registered users take priority).
     final userCount = Sqflite.firstIntValue(await db.rawQuery('SELECT COUNT(*) FROM users'));
     if (userCount == 0) {
-      final admin = User(
+      final now = DateTime.now();
+      // 1. Admin
+      await db.insert('users', User(
         name: 'Admin Summit',
         email: 'admin@summit.com',
         password: 'admin123',
         isAdmin: true,
-        createdAt: DateTime.now().toIso8601String(),
-      );
-      await db.insert('users', admin.toMap());
+        createdAt: now.toIso8601String(),
+      ).toMap());
+
+      // 2. Demo customers with addresses so checkout flow works.
+      final customer1Id = await db.insert('users', User(
+        name: 'Budi Santoso',
+        email: 'budi@email.com',
+        password: 'budi123',
+        phone: '081234567890',
+        createdAt: now.subtract(const Duration(days: 30)).toIso8601String(),
+      ).toMap());
+      await db.insert('addresses', Address(
+        userId: customer1Id,
+        label: 'Rumah',
+        recipientName: 'Budi Santoso',
+        recipientPhone: '081234567890',
+        fullAddress: 'Jl. Merapi No. 12, Sleman',
+        city: 'Sleman',
+        subdistrict: 'Ngaglik',
+        postalCode: '55581',
+        isPrimary: true,
+      ).toMap());
+
+      final customer2Id = await db.insert('users', User(
+        name: 'Siti Rahma',
+        email: 'siti@email.com',
+        password: 'siti123',
+        phone: '082198765432',
+        createdAt: now.subtract(const Duration(days: 20)).toIso8601String(),
+      ).toMap());
+      await db.insert('addresses', Address(
+        userId: customer2Id,
+        label: 'Rumah',
+        recipientName: 'Siti Rahma',
+        recipientPhone: '082198765432',
+        fullAddress: 'Jl. Bromo No. 8, Malang',
+        city: 'Malang',
+        subdistrict: 'Lowokwaru',
+        postalCode: '65141',
+        isPrimary: true,
+      ).toMap());
+
+      final customer3Id = await db.insert('users', User(
+        name: 'Andi Wijaya',
+        email: 'andi@email.com',
+        password: 'andi123',
+        phone: '085711223344',
+        createdAt: now.subtract(const Duration(days: 10)).toIso8601String(),
+      ).toMap());
+      await db.insert('addresses', Address(
+        userId: customer3Id,
+        label: 'Rumah',
+        recipientName: 'Andi Wijaya',
+        recipientPhone: '085711223344',
+        fullAddress: 'Jl. Semeru No. 21, Lumajang',
+        city: 'Lumajang',
+        subdistrict: 'Lumajang',
+        postalCode: '67312',
+        isPrimary: true,
+      ).toMap());
+
+      // 3. Seed demo orders so the dashboard & sales report have data
+      // immediately on a fresh install — no need to manually checkout
+      // before demoing the admin panel.
+      await _seedDemoOrders(db, customer1Id, customer2Id, customer3Id);
     }
+  }
+
+  /// Seeds 8 demo orders spread across the last 7 days with various
+  /// products and statuses. Uses the product's current cost_price as
+  /// the order_items snapshot so profit reports show realistic data.
+  Future<void> _seedDemoOrders(Database db, int c1, int c2, int c3) async {
+    final now = DateTime.now();
+    final products = SeedData.products;
+
+    // Helper to create an order.
+    Future<void> createOrder({
+      required int userId,
+      required int addressId,
+      required List<int> productIndexes,
+      required List<int> quantities,
+      required int ongkir,
+      required String status,
+      required int daysAgo,
+      String? paymentMethod,
+    }) async {
+      int subtotal = 0;
+      final createdAt = DateTime(now.year, now.month, now.day).subtract(Duration(days: daysAgo));
+
+      final orderId = await db.insert('orders', Order(
+        userId: userId,
+        addressId: addressId,
+        ongkir: ongkir,
+        subtotal: 0, // will be computed below
+        total: 0,
+        status: status,
+        courier: 'JNE REG',
+        paymentMethod: paymentMethod ?? 'Transfer Bank',
+        createdAt: createdAt.toIso8601String(),
+        paidAt: status != 'menunggu_pembayaran' ? createdAt.toIso8601String() : null,
+      ).toMap());
+
+      for (var i = 0; i < productIndexes.length; i++) {
+        final p = products[productIndexes[i]];
+        final qty = quantities[i];
+        final price = p.effectivePrice;
+        final itemSubtotal = price * qty;
+        subtotal += itemSubtotal;
+
+        await db.insert('order_items', OrderItem(
+          orderId: orderId,
+          productId: p.id!,
+          productName: p.name,
+          price: price,
+          costPrice: p.costPrice,
+          qty: qty,
+          subtotal: itemSubtotal,
+        ).toMap());
+
+        // Decrement stock & increment sold_count for realism.
+        await db.rawUpdate(
+          'UPDATE products SET stock = MAX(0, stock - ?), sold_count = sold_count + ? WHERE id = ?',
+          [qty, qty, p.id],
+        );
+      }
+
+      final total = subtotal + ongkir;
+      await db.update('orders',
+        {'subtotal': subtotal, 'total': total},
+        where: 'id = ?',
+        whereArgs: [orderId],
+      );
+    }
+
+    // Get address IDs (first address for each customer).
+    final addr1 = Sqflite.firstIntValue(await db.rawQuery('SELECT id FROM addresses WHERE user_id = ? LIMIT 1', [c1]))!;
+    final addr2 = Sqflite.firstIntValue(await db.rawQuery('SELECT id FROM addresses WHERE user_id = ? LIMIT 1', [c2]))!;
+    final addr3 = Sqflite.firstIntValue(await db.rawQuery('SELECT id FROM addresses WHERE user_id = ? LIMIT 1', [c3]))!;
+
+    // 8 orders spread across last 7 days, various statuses.
+    await createOrder(userId: c1, addressId: addr1, productIndexes: [6, 12], quantities: [1, 1], ongkir: 25000, status: 'selesai', daysAgo: 6);
+    await createOrder(userId: c2, addressId: addr2, productIndexes: [2], quantities: [2], ongkir: 20000, status: 'selesai', daysAgo: 5);
+    await createOrder(userId: c3, addressId: addr3, productIndexes: [0, 14], quantities: [1, 1], ongkir: 30000, status: 'selesai', daysAgo: 4);
+    await createOrder(userId: c1, addressId: addr1, productIndexes: [8], quantities: [1], ongkir: 25000, status: 'selesai', daysAgo: 3);
+    await createOrder(userId: c2, addressId: addr2, productIndexes: [6, 11, 16], quantities: [1, 2, 1], ongkir: 20000, status: 'dikirim', daysAgo: 2);
+    await createOrder(userId: c3, addressId: addr3, productIndexes: [4], quantities: [1], ongkir: 30000, status: 'diproses', daysAgo: 1);
+    await createOrder(userId: c1, addressId: addr1, productIndexes: [9, 12], quantities: [1, 1], ongkir: 25000, status: 'menunggu_pembayaran', daysAgo: 0);
+    await createOrder(userId: c2, addressId: addr2, productIndexes: [3], quantities: [1], ongkir: 20000, status: 'menunggu_pembayaran', daysAgo: 0);
   }
 
   /// Inserts the current SeedData into the DB unconditionally. Caller is
@@ -74,10 +241,14 @@ class AuthService {
     }
   }
 
-  /// Destructive: wipes products, categories, vouchers, and all data
-  /// that depends on them (cart_items, wishlist, order_items, orders,
-  /// reviews), then re-runs the seed from `SeedData`. Users (accounts)
-  /// are preserved. Wrapped in a single transaction for atomicity.
+  /// Destructive: wipes all transactional data (orders, cart, wishlist,
+  /// reviews) and catalog data (products, categories, vouchers), then
+  /// re-seeds everything including demo customers and demo orders so
+  /// the dashboard & sales report have data immediately after reset.
+  ///
+  /// Users (accounts) are also wiped and re-seeded (admin + 3 demo
+  /// customers) because demo orders need valid user/address FKs.
+  /// The current session is cleared so the user is sent to login.
   ///
   /// Called from the admin dashboard "Reset Data ke Default" tile.
   Future<void> resetSeed() async {
@@ -90,14 +261,75 @@ class AuthService {
       await txn.delete('cart_items');
       await txn.delete('wishlist');
       await txn.delete('reviews');
+      await txn.delete('addresses');
       await txn.delete('products');
       await txn.delete('categories');
       await txn.delete('vouchers');
+      await txn.delete('users');
     });
     // Re-insert seed. Done outside the transaction because sqflite's
     // transaction doesn't allow nested insert calls cleanly here, and
     // these are idempotent seed inserts with fixed ids.
     await _seedAll();
+    // Re-seed users (admin + demo customers) and demo orders.
+    await _seedDemoUsersAndOrders(db);
+
+    // Clear the saved session so the user is sent to the login page
+    // after reset (their user ID no longer exists).
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.remove(_kSessionUserId);
+    _currentUser = null;
+  }
+
+  /// Re-seeds admin + 3 demo customers (with addresses) and 8 demo
+  /// orders. Used by resetSeed() to restore a complete demo dataset.
+  Future<void> _seedDemoUsersAndOrders(Database db) async {
+    final now = DateTime.now();
+    await db.insert('users', User(
+      name: 'Admin Summit',
+      email: 'admin@summit.com',
+      password: 'admin123',
+      isAdmin: true,
+      createdAt: now.toIso8601String(),
+    ).toMap());
+
+    final c1 = await db.insert('users', User(
+      name: 'Budi Santoso',
+      email: 'budi@email.com',
+      password: 'budi123',
+      phone: '081234567890',
+      createdAt: now.subtract(const Duration(days: 30)).toIso8601String(),
+    ).toMap());
+    await db.insert('addresses', Address(
+      userId: c1, label: 'Rumah', recipientName: 'Budi Santoso', recipientPhone: '081234567890',
+      fullAddress: 'Jl. Merapi No. 12, Sleman', city: 'Sleman', subdistrict: 'Ngaglik', postalCode: '55581', isPrimary: true,
+    ).toMap());
+
+    final c2 = await db.insert('users', User(
+      name: 'Siti Rahma',
+      email: 'siti@email.com',
+      password: 'siti123',
+      phone: '082198765432',
+      createdAt: now.subtract(const Duration(days: 20)).toIso8601String(),
+    ).toMap());
+    await db.insert('addresses', Address(
+      userId: c2, label: 'Rumah', recipientName: 'Siti Rahma', recipientPhone: '082198765432',
+      fullAddress: 'Jl. Bromo No. 8, Malang', city: 'Malang', subdistrict: 'Lowokwaru', postalCode: '65141', isPrimary: true,
+    ).toMap());
+
+    final c3 = await db.insert('users', User(
+      name: 'Andi Wijaya',
+      email: 'andi@email.com',
+      password: 'andi123',
+      phone: '085711223344',
+      createdAt: now.subtract(const Duration(days: 10)).toIso8601String(),
+    ).toMap());
+    await db.insert('addresses', Address(
+      userId: c3, label: 'Rumah', recipientName: 'Andi Wijaya', recipientPhone: '085711223344',
+      fullAddress: 'Jl. Semeru No. 21, Lumajang', city: 'Lumajang', subdistrict: 'Lumajang', postalCode: '67312', isPrimary: true,
+    ).toMap());
+
+    await _seedDemoOrders(db, c1, c2, c3);
   }
 
   Future<String?> register({
@@ -119,6 +351,10 @@ class AuthService {
 
     final id = await db.insert('users', user.toMap());
     _currentUser = user.copyWith(id: id);
+
+    // Persist session so the user stays logged in across app restarts.
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setInt(_kSessionUserId, id);
     return null;
   }
 
@@ -129,11 +365,20 @@ class AuthService {
     if (result.isEmpty) return 'Email atau password salah';
 
     _currentUser = User.fromMap(result.first);
+
+    // Persist session so the user stays logged in across app restarts.
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setInt(_kSessionUserId, _currentUser!.id!);
     return null;
   }
 
   Future<void> logout() async {
     _currentUser = null;
+    // Clear the saved session so logout actually persists across
+    // app restarts. Previously the app would auto-login again on
+    // the next launch because init() grabbed users.first.
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.remove(_kSessionUserId);
   }
 
   Future<void> updateProfile({

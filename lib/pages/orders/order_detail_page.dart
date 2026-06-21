@@ -323,7 +323,13 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
       actions: [
         TextButton(onPressed: () => Navigator.pop(context), child: Text('Tidak', style: AppText.body(size: 13, color: AppColors.textSecondary))),
         ElevatedButton(
-          onPressed: () { Navigator.pop(context); context.read<OrderProvider>().cancelOrder(order.id!, order.userId); Navigator.pop(this.context); },
+          onPressed: () {
+            Navigator.pop(context);
+            context.read<OrderProvider>().cancelOrder(order.id!, order.userId);
+            // Refresh product cache so restored stock is visible in catalog.
+            context.read<ProductProvider>().loadProducts();
+            Navigator.pop(this.context);
+          },
           style: ElevatedButton.styleFrom(backgroundColor: AppColors.sale),
           child: const Text('Ya, Batalkan'),
         ),

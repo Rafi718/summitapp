@@ -193,7 +193,8 @@ class _CheckoutPageState extends State<CheckoutPage> {
 
     final auth = context.read<AuthProvider>();
     final cart = context.read<CartProvider>();
-    final products = context.read<ProductProvider>().products;
+    final productProvider = context.read<ProductProvider>();
+    final products = productProvider.products;
     final orderProvider = context.read<OrderProvider>();
 
     if (auth.currentUser == null) return;
@@ -208,6 +209,11 @@ class _CheckoutPageState extends State<CheckoutPage> {
       paymentMethod: _selectedPayment!,
       voucherDiscount: cart.voucherDiscount,
     );
+
+    // Refresh the product cache so the UI reflects the decreased stock
+    // and increased sold_count. Without this, the product list/detail
+    // pages still show the old stock from the in-memory cache.
+    await productProvider.loadProducts();
 
     await cart.clearCart();
     if (!mounted) return;
