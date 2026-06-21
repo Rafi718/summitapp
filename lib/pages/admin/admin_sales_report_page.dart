@@ -73,6 +73,7 @@ class _AdminSalesReportPageState extends State<AdminSalesReportPage> {
     });
   }
 
+
   Future<void> _pickDate(bool isStart) async {
     final picked = await showDatePicker(
       context: context,
@@ -205,7 +206,6 @@ class _AdminSalesReportPageState extends State<AdminSalesReportPage> {
   Widget _buildSummaryCards(NumberFormat currency) {
     final r = _report!;
     final margin = r.marginPercent;
-    final marginColor = margin >= 30 ? AppColors.success : (margin >= 15 ? AppColors.warning : AppColors.sale);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -220,20 +220,20 @@ class _AdminSalesReportPageState extends State<AdminSalesReportPage> {
           mainAxisSpacing: 10,
           childAspectRatio: 1.4,
           children: [
-            _SummaryCard(label: 'Total Revenue', value: currency.format(r.totalRevenue), icon: Icons.payments_outlined, color: AppColors.brand),
-            _SummaryCard(label: 'Total Profit', value: currency.format(r.totalProfit), icon: Icons.trending_up, color: AppColors.success),
-            _SummaryCard(label: 'Total Cost (HPP)', value: currency.format(r.totalCost), icon: Icons.local_shipping_outlined, color: AppColors.info),
-            _SummaryCard(label: 'Avg Order Value', value: currency.format(r.aov), icon: Icons.shopping_cart_outlined, color: AppColors.warning),
+            _SummaryCard(label: 'Total Revenue', value: currency.format(r.totalRevenue), icon: Icons.payments_outlined),
+            _SummaryCard(label: 'Total Profit', value: currency.format(r.totalProfit), icon: Icons.trending_up),
+            _SummaryCard(label: 'Total Cost (HPP)', value: currency.format(r.totalCost), icon: Icons.local_shipping_outlined),
+            _SummaryCard(label: 'Avg Order Value', value: currency.format(r.aov), icon: Icons.shopping_cart_outlined),
           ],
         ),
         const SizedBox(height: 10),
         Row(
           children: [
-            Expanded(child: _SummaryCard(label: 'Jumlah Order', value: '${r.totalOrders} order', icon: Icons.receipt_long_outlined, color: AppColors.textPrimary, compact: true)),
+            Expanded(child: _SummaryCard(label: 'Jumlah Order', value: '${r.totalOrders} order', icon: Icons.receipt_long_outlined, compact: true)),
             const SizedBox(width: 10),
-            Expanded(child: _SummaryCard(label: 'Item Terjual', value: '${r.totalItemsSold} item', icon: Icons.inventory_2_outlined, color: AppColors.textPrimary, compact: true)),
+            Expanded(child: _SummaryCard(label: 'Item Terjual', value: '${r.totalItemsSold} item', icon: Icons.inventory_2_outlined, compact: true)),
             const SizedBox(width: 10),
-            Expanded(child: _SummaryCard(label: 'Margin', value: '$margin%', icon: Icons.percent, color: marginColor, compact: true)),
+            Expanded(child: _SummaryCard(label: 'Margin', value: '$margin%', icon: Icons.percent, compact: true)),
           ],
         ),
       ],
@@ -473,8 +473,8 @@ class _AdminSalesReportPageState extends State<AdminSalesReportPage> {
                   width: 28,
                   height: 28,
                   alignment: Alignment.center,
-                  decoration: BoxDecoration(color: AppColors.success.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(8)),
-                  child: Text('$index', style: AppText.body(size: 12, weight: FontWeight.w700, color: AppColors.success)),
+                  decoration: BoxDecoration(color: AppColors.surfaceAlt, borderRadius: BorderRadius.circular(8)),
+                  child: Text('$index', style: AppText.body(size: 12, weight: FontWeight.w700, color: AppColors.textSecondary)),
                 ),
                 const SizedBox(width: 12),
                 Expanded(
@@ -487,7 +487,7 @@ class _AdminSalesReportPageState extends State<AdminSalesReportPage> {
                     ],
                   ),
                 ),
-                Text(currency.format(p.totalProfit), style: AppText.body(size: 13, weight: FontWeight.w700, color: AppColors.success)),
+                Text(currency.format(p.totalProfit), style: AppText.body(size: 13, weight: FontWeight.w700, color: AppColors.textPrimary)),
               ],
             ),
           );
@@ -500,10 +500,20 @@ class _AdminSalesReportPageState extends State<AdminSalesReportPage> {
   // Helpers
   // ---------------------------------------------------------------------------
   Widget _sectionLabel(String text) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-      decoration: BoxDecoration(color: AppColors.brand.withValues(alpha: 0.08), borderRadius: BorderRadius.circular(6)),
-      child: Text(text, style: AppText.label(size: 10, color: AppColors.brand, letterSpacing: 0.8)),
+    return Row(
+      children: [
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+          decoration: BoxDecoration(color: AppColors.surfaceAlt, borderRadius: BorderRadius.circular(6)),
+          child: Text(text, style: AppText.label(size: 10, color: AppColors.textSecondary, letterSpacing: 0.8)),
+        ),
+        const Expanded(
+          child: Padding(
+            padding: EdgeInsets.only(left: 8),
+            child: Divider(color: AppColors.divider, height: 1),
+          ),
+        ),
+      ],
     );
   }
 }
@@ -512,19 +522,18 @@ class _SummaryCard extends StatelessWidget {
   final String label;
   final String value;
   final IconData icon;
-  final Color color;
   final bool compact;
 
   const _SummaryCard({
     required this.label,
     required this.value,
     required this.icon,
-    required this.color,
     this.compact = false,
   });
 
   @override
   Widget build(BuildContext context) {
+    const iconColor = AppColors.textSecondary;
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
@@ -537,8 +546,8 @@ class _SummaryCard extends StatelessWidget {
           Container(
             width: 40,
             height: 40,
-            decoration: BoxDecoration(color: color.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(10)),
-            child: Icon(icon, color: color, size: 20),
+            decoration: BoxDecoration(color: AppColors.surfaceAlt, borderRadius: BorderRadius.circular(10)),
+            child: Icon(icon, color: iconColor, size: 20),
           ),
           const SizedBox(width: 10),
           Expanded(
